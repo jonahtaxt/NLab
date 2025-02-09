@@ -1,6 +1,7 @@
 package com.effisoft.nlab.appointmentapi.service;
 
 import com.effisoft.nlab.appointmentapi.entity.Nutritionist;
+import com.effisoft.nlab.appointmentapi.exception.NutritionistServiceException;
 import com.effisoft.nlab.appointmentapi.repository.NutritionistRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class NutritionistService {
     public Nutritionist createNutritionist(Nutritionist nutritionist) {
         // Validate email uniqueness
         if (nutritionistRepository.findByEmail(nutritionist.getEmail()).isPresent()) {
-            throw new RuntimeException("Nutritionist with this email already exists");
+            throw new NutritionistServiceException("A Nutritionist with email " + nutritionist.getEmail() + " already exists");
         }
 
         nutritionist.setCreatedAt(LocalDateTime.now());
@@ -46,13 +47,13 @@ public class NutritionistService {
                     existingNutritionist.setPhone(updatedNutritionist.getPhone());
                     return nutritionistRepository.save(existingNutritionist);
                 })
-                .orElseThrow(() -> new RuntimeException("Nutritionist not found"));
+                .orElseThrow(() -> new NutritionistServiceException("Nutritionist not found"));
     }
 
     @Transactional
     public void deactivateNutritionist(Integer id) {
         Nutritionist nutritionist = nutritionistRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Nutritionist not found"));
+                .orElseThrow(() -> new NutritionistServiceException("Nutritionist not found"));
 
         nutritionist.setActive(false);
         nutritionistRepository.save(nutritionist);

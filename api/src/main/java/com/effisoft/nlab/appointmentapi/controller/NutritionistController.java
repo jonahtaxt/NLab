@@ -4,12 +4,10 @@ import com.effisoft.nlab.appointmentapi.entity.Nutritionist;
 import com.effisoft.nlab.appointmentapi.service.NutritionistService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/nutritionists")
@@ -21,8 +19,16 @@ public class NutritionistController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")  // Match the casing from Keycloak
     public ResponseEntity<Nutritionist> createNutritionist(@RequestBody Nutritionist nutritionist) {
         Nutritionist createdNutritionist = nutritionistService.createNutritionist(nutritionist);
         return new ResponseEntity<>(createdNutritionist, HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")  // Match the casing from Keycloak
+    public ResponseEntity<List<Nutritionist>> getAllActiveNutritionists() {
+        List<Nutritionist> activeNutritionists = nutritionistService.getAllActiveNutritionists();
+        return ResponseEntity.ok(activeNutritionists);
     }
 }
