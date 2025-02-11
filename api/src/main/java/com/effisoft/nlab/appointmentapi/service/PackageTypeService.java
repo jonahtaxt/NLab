@@ -1,6 +1,7 @@
 package com.effisoft.nlab.appointmentapi.service;
 
 import com.effisoft.nlab.appointmentapi.entity.PackageType;
+import com.effisoft.nlab.appointmentapi.exception.PackageTypeServiceException;
 import com.effisoft.nlab.appointmentapi.repository.PackageTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,13 +43,13 @@ public class PackageTypeService {
                     existingPackageType.setNutritionistRate(updatedPackageType.getNutritionistRate());
                     return packageTypeRepository.save(existingPackageType);
                 })
-                .orElseThrow(() -> new RuntimeException("Package Type not found"));
+                .orElseThrow(() -> new PackageTypeServiceException("Package Type not found"));
     }
 
     @Transactional
     public void deactivatePackageType(Integer id) {
         PackageType packageType = packageTypeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Package Type not found"));
+                .orElseThrow(() -> new PackageTypeServiceException("Package Type not found"));
 
         packageType.setActive(false);
         packageTypeRepository.save(packageType);

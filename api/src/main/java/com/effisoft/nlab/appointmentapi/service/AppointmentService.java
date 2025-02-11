@@ -2,6 +2,7 @@ package com.effisoft.nlab.appointmentapi.service;
 
 import com.effisoft.nlab.appointmentapi.entity.Appointment;
 import com.effisoft.nlab.appointmentapi.entity.PurchasedPackage;
+import com.effisoft.nlab.appointmentapi.exception.AppointmentServiceException;
 import com.effisoft.nlab.appointmentapi.repository.AppointmentRepository;
 import com.effisoft.nlab.appointmentapi.repository.PurchasedPackageRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,13 +52,13 @@ public class AppointmentService {
                     appointment.setStatus(newStatus);
                     return appointmentRepository.save(appointment);
                 })
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new AppointmentServiceException("Appointment not found"));
     }
 
     @Transactional
     public void cancelAppointment(Integer appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new AppointmentServiceException("Appointment not found"));
 
         // Restore remaining appointment to the package
         PurchasedPackage purchasedPackage = appointment.getPurchasedPackage();

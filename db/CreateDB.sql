@@ -22,8 +22,8 @@ CREATE TABLE Patients (
 -- Package related tables
 CREATE TABLE PackageTypes (
     PackageTypeID INT PRIMARY KEY IDENTITY(1,1),
-    Name NVARCHAR(50) NOT NULL,
-    Description NVARCHAR(200),
+    [Name] NVARCHAR(50) NOT NULL,
+    [Description] NVARCHAR(200),
     NumberOfAppointments INT NOT NULL,
     IsBundle BIT DEFAULT 0,
     Price DECIMAL(10,2) NOT NULL,
@@ -33,14 +33,14 @@ CREATE TABLE PackageTypes (
 
 CREATE TABLE PaymentMethods (
     PaymentMethodID INT PRIMARY KEY IDENTITY(1,1),
-    Name NVARCHAR(50) NOT NULL,
-    Description NVARCHAR(200)
+    [Name] NVARCHAR(50) NOT NULL,
+    [Description] NVARCHAR(200)
 );
 
 CREATE TABLE CardPaymentTypes (
     CardPaymentTypeID INT PRIMARY KEY IDENTITY(1,1),
-    Name NVARCHAR(50) NOT NULL,
-    Description NVARCHAR(200),
+    [Name] NVARCHAR(50) NOT NULL,
+    [Description] NVARCHAR(200),
     BankFeePercentage DECIMAL(5,2) NOT NULL,
     NumberOfInstallments INT DEFAULT 1,
     IsActive BIT DEFAULT 1
@@ -68,7 +68,7 @@ CREATE TABLE Appointments (
     PurchasedPackageID INT NOT NULL,
     NutritionistID INT NOT NULL,
     AppointmentDateTime DATETIME2 NOT NULL,
-    Status NVARCHAR(20) NOT NULL, -- Scheduled, Completed, Cancelled, etc.
+    [Status] NVARCHAR(20) NOT NULL, -- Scheduled, Completed, Cancelled, etc.
     Notes NVARCHAR(500),
     CreatedAt DATETIME2 DEFAULT GETDATE(),
     FOREIGN KEY (PurchasedPackageID) REFERENCES PurchasedPackages(PurchasedPackageID),
