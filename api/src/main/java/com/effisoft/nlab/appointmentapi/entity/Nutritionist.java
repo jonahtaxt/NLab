@@ -18,12 +18,12 @@ public class Nutritionist {
     private Integer id;
 
     @NotBlank(message = "First name is required")
-    @Pattern(regexp = "^[a-zA-Z\\s]{2,50}$", message = "First name must be 2-50 characters long and contain only letters")
+    @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]{2,50}$", message = "First name must be 2-50 characters long and contain only letters")
     @Column(nullable = false)
     private String firstName;
 
     @NotBlank(message = "Last name is required")
-    @Pattern(regexp = "^[a-zA-Z\\s]{2,50}$", message = "Last name must be 2-50 characters long and contain only letters")
+    @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]{2,50}$", message = "Last name must be 2-50 characters long and contain only letters")
     @Column(nullable = false)
     private String lastName;
 
