@@ -1,43 +1,65 @@
 package com.effisoft.nlab.appointmentapi.service;
 
-import com.effisoft.nlab.appointmentapi.entity.PurchasedPackage;
+import com.effisoft.nlab.appointmentapi.dto.PurchasedPackageDTO;
+import com.effisoft.nlab.appointmentapi.entity.*;
 import com.effisoft.nlab.appointmentapi.exception.PurchasedPackageServiceException;
-import com.effisoft.nlab.appointmentapi.repository.PurchasedPackageRepository;
+import com.effisoft.nlab.appointmentapi.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@Validated
 @RequiredArgsConstructor
 public class PurchasedPackageService {
     private final PurchasedPackageRepository purchasedPackageRepository;
+    private final PatientRepository patientRepository;
+    private final PackageTypeRepository packageTypeRepository;
+    private final PaymentMethodRepository paymentMethodRepository;
+    private final CardPaymentTypeRepository cardPaymentTypeRepository;
 
     @Transactional
-    public PurchasedPackage createPurchasedPackage(PurchasedPackage purchasedPackage) {
-        // Set purchase date to current time if not provided
-        if (purchasedPackage.getPurchaseDate() == null) {
+    public PurchasedPackage createPurchasedPackage(@Valid PurchasedPackageDTO dto) {
+        try {
+            PurchasedPackage purchasedPackage = new PurchasedPackage();
+
+            // Set related entities
+            Patient patient = patientRepository.findById(dto.getPatientId())
+                    .orElseThrow(() -> new PurchasedPackageServiceException("Patient not found"));
+
+            PackageType packageType = packageTypeRepository.findById(dto.getPackageTypeId())
+                    .orElseThrow(() -> new PurchasedPackageServiceException("Package type not found"));
+
+            PaymentMethod paymentMethod = paymentMethodRepository.findById(dto.getPaymentMethodId())
+                    .orElseThrow(() -> new PurchasedPackageServiceException("Payment method not found"));
+
+            purchasedPackage.setPatient(patient);
+            purchasedPackage.setPackageType(packageType);
+            purchasedPackage.setPaymentMethod(paymentMethod);
+
+            // Set card payment type if provided
+            if (dto.getCardPaymentTypeId() != null) {
+                CardPaymentType cardPaymentType = cardPaymentTypeRepository.findById(dto.getCardPaymentTypeId())
+                        .orElseThrow(() -> new PurchasedPackageServiceException("Card payment type not found"));
+                purchasedPackage.setCardPaymentType(cardPaymentType);
+            }
+
+            // Set other fields
             purchasedPackage.setPurchaseDate(LocalDateTime.now());
-        }
+            purchasedPackage.setTotalAmount(dto.getTotalAmount());
+            purchasedPackage.setRemainingAppointments(packageType.getNumberOfAppointments());
+            purchasedPackage.setExpirationDate(LocalDateTime.now().plusMonths(6));
 
-        // Set initial remaining appointments from package type
-        if (purchasedPackage.getRemainingAppointments() == null) {
-            purchasedPackage.setRemainingAppointments(
-                    purchasedPackage.getPackageType().getNumberOfAppointments()
-            );
+            return purchasedPackageRepository.save(purchasedPackage);
+        } catch (DataIntegrityViolationException e) {
+            throw new PurchasedPackageServiceException("Failed to create purchased package due to data integrity violation", e);
         }
-
-        // Calculate expiration date if not provided (e.g., 6 months from purchase)
-        if (purchasedPackage.getExpirationDate() == null) {
-            purchasedPackage.setExpirationDate(
-                    purchasedPackage.getPurchaseDate().plusMonths(6)
-            );
-        }
-
-        return purchasedPackageRepository.save(purchasedPackage);
     }
 
     @Transactional(readOnly = true)
@@ -46,30 +68,31 @@ public class PurchasedPackageService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<PurchasedPackage> getPurchasedPackageById(Integer id) {
-        return purchasedPackageRepository.findById(id);
+    public PurchasedPackage getPurchasedPackageById(Integer id) {
+        return purchasedPackageRepository.findById(id)
+                .orElseThrow(() -> new PurchasedPackageServiceException("Purchased package not found with id: " + id));
     }
 
     @Transactional
-    public PurchasedPackage updatePurchasedPackage(Integer id, PurchasedPackage updatedPackage) {
-        return purchasedPackageRepository.findById(id)
-                .map(existingPackage -> {
-                    // Update only allowed fields
-                    existingPackage.setRemainingAppointments(updatedPackage.getRemainingAppointments());
-                    existingPackage.setExpirationDate(updatedPackage.getExpirationDate());
-                    return purchasedPackageRepository.save(existingPackage);
-                })
-                .orElseThrow(() -> new PurchasedPackageServiceException("Purchased Package not found"));
+    public PurchasedPackage updatePurchasedPackage(Integer id, @Valid PurchasedPackageDTO dto) {
+        try {
+            PurchasedPackage existingPackage = getPurchasedPackageById(id);
+
+            // Only allow updating certain fields
+            existingPackage.setRemainingAppointments(dto.getRemainingAppointments());
+            existingPackage.setExpirationDate(dto.getExpirationDate());
+
+            return purchasedPackageRepository.save(existingPackage);
+        } catch (DataIntegrityViolationException e) {
+            throw new PurchasedPackageServiceException("Failed to update purchased package due to data integrity violation", e);
+        }
     }
 
     @Transactional(readOnly = true)
     public boolean isPackageValid(Integer id) {
-        return purchasedPackageRepository.findById(id)
-                .map(pkg -> {
-                    LocalDateTime now = LocalDateTime.now();
-                    return pkg.getRemainingAppointments() > 0 &&
-                            pkg.getExpirationDate().isAfter(now);
-                })
-                .orElse(false);
+        PurchasedPackage purchasedPackage = getPurchasedPackageById(id);
+        LocalDateTime now = LocalDateTime.now();
+        return purchasedPackage.getRemainingAppointments() > 0 &&
+                purchasedPackage.getExpirationDate().isAfter(now);
     }
 }
