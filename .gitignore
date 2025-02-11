@@ -64,3 +64,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/DatabaseProjectNlab/bin
+/DatabaseProjectNlab/obj
