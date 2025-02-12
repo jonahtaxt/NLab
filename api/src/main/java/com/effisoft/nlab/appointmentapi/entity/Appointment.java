@@ -1,6 +1,7 @@
 package com.effisoft.nlab.appointmentapi.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -12,20 +13,29 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotNull(message = "Purchased package is required")
     @ManyToOne
     @JoinColumn(name = "PurchasedPackageID", nullable = false)
     private PurchasedPackage purchasedPackage;
 
+    @NotNull(message = "Nutritionist is required")
     @ManyToOne
     @JoinColumn(name = "NutritionistID", nullable = false)
     private Nutritionist nutritionist;
 
+    @NotNull(message = "Appointment date/time is required")
+    @Future(message = "Appointment date/time must be in the future")
     @Column(nullable = false)
     private LocalDateTime appointmentDateTime;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Status is required")
+    @Pattern(regexp = "^(SCHEDULED|COMPLETED|CANCELLED|RESCHEDULED|NO_SHOW)$", 
+            message = "Invalid status. Must be one of: SCHEDULED, COMPLETED, CANCELLED, RESCHEDULED, NO_SHOW")
+    @Column(nullable = false, length = 20)
     private String status;
 
+    @Size(max = 500, message = "Notes must not exceed 500 characters")
+    @Column(length = 500)
     private String notes;
 
     @Column(nullable = false)
