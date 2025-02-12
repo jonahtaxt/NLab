@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Entity representing a card payment type with specific installment plan and bank fee configuration.
@@ -65,7 +66,7 @@ public class CardPaymentType {
      */
     public BigDecimal calculateFeeAmount(BigDecimal purchaseAmount) {
         return purchaseAmount.multiply(bankFeePercentage)
-                .divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_UP);
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -75,6 +76,6 @@ public class CardPaymentType {
      */
     public BigDecimal calculateInstallmentAmount(BigDecimal purchaseAmount) {
         BigDecimal totalAmount = purchaseAmount.add(calculateFeeAmount(purchaseAmount));
-        return totalAmount.divide(BigDecimal.valueOf(numberOfInstallments), 2, BigDecimal.ROUND_HALF_UP);
+        return totalAmount.divide(BigDecimal.valueOf(numberOfInstallments), 2, RoundingMode.HALF_UP);
     }
 }
