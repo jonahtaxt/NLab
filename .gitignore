@@ -66,3 +66,4 @@ build/
 .vscode/
 /DatabaseProjectNlab/bin
 /DatabaseProjectNlab/obj
+api/.idea/workspace.xml
