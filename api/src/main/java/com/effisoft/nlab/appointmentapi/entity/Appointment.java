@@ -30,14 +30,18 @@ public class Appointment {
 
     @NotBlank(message = "Status is required")
     @Pattern(regexp = "^(SCHEDULED|COMPLETED|CANCELLED|RESCHEDULED|NO_SHOW)$", 
-            message = "Invalid status. Must be one of: SCHEDULED, COMPLETED, CANCELLED, RESCHEDULED, NO_SHOW")
-    @Column(nullable = false, length = 20)
+            message = "Invalid appointment status")
+    @Column(nullable = false)
     private String status;
 
     @Size(max = 500, message = "Notes must not exceed 500 characters")
-    @Column(length = 500)
     private String notes;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }
