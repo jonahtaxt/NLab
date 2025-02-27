@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchActivePatients } from '@/app/lib/data';
+import { fetchAllPatients } from '@/app/lib/data.patient';
 import PatientTable from '@/app/ui/patients/active-patients';
 import { Patient } from '@/app/lib/definitions';
 
@@ -13,7 +13,7 @@ export default function Page() {
     useEffect(() => {
         async function loadPatients() {
             try {
-                const data = await fetchActivePatients();
+                const data = await fetchAllPatients();
                 setPatients(data);
                 setLoading(false);
             } catch (err) {
