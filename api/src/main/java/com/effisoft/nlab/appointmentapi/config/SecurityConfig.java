@@ -7,25 +7,15 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,9 +37,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
+                        // Permit OPTIONS requests for CORS preflight
+                        .requestMatchers("OPTIONS", "/**").permitAll()
+                        // Explicitly require specific roles for each endpoint
                         .requestMatchers("/api/nutritionists/**").hasAnyRole("ADMIN", "NUTRITIONIST")
-                        .requestMatchers("/api/patients/**").hasAnyRole("ADMIN", "PATIENT")
+                        .requestMatchers("/api/patients/**").hasAnyRole("ADMIN", "NUTRITIONIST", "PATIENT")
                         .requestMatchers("/api/appointments/**").hasAnyRole("ADMIN", "NUTRITIONIST", "PATIENT")
+                        .requestMatchers("/api/package-types/**").hasAnyRole("ADMIN", "NUTRITIONIST")
+                        .requestMatchers("/api/purchased-packages/**").hasAnyRole("ADMIN", "NUTRITIONIST", "PATIENT")
+                        .requestMatchers("/api/payment-methods/**").hasAnyRole("ADMIN", "NUTRITIONIST")
+                        .requestMatchers("/api/card-payment-types/**").hasAnyRole("ADMIN", "NUTRITIONIST")
+                        // Any other endpoint requires authentication
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -59,19 +57,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .addFilterAfter(new OncePerRequestFilter() {
-                    @Override
-                    protected void doFilterInternal(HttpServletRequest request,
-                                                    HttpServletResponse response,
-                                                    FilterChain filterChain) throws ServletException, IOException {
-                        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                        if (auth == null) {
-                            logAuthenticationError("No authentication found for request to: {}", request.getRequestURI());
-                        }
-                        filterChain.doFilter(request, response);
-                    }
-                }, SecurityContextHolderFilter.class);
+                );
 
         return http.build();
     }
@@ -112,7 +98,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:8080"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

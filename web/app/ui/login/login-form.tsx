@@ -49,7 +49,7 @@ const Login = () => {
             router.push('/dashboard');
         } catch (err) {
             console.error("Login error:", err);
-            setError('Login failed. Please check your credentials.');
+            setError('No se puede iniciar sesión. Por favor, verifique sus credenciales.');
         }
     };
 

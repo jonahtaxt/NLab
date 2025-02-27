@@ -21,14 +21,14 @@ public class PatientController {
     private final PatientService patientService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST'")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<Patient> createPatient(@Valid @RequestBody PatientDTO patientDTO) {
         Patient createdPatient = patientService.createPatient(patientDTO);
         return new ResponseEntity<>(createdPatient, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST'")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<Patient> updatePatient(
             @PathVariable Integer id,
             @Valid @RequestBody PatientDTO patientDTO) {
@@ -44,14 +44,14 @@ public class PatientController {
     }
 
     @GetMapping()
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST'")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<List<Patient>> getAllPatients() {
         List<Patient> patients = patientService.getAllPatients();
         return ResponseEntity.ok(patients);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT'")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
     public ResponseEntity<Patient> getPatientById(@PathVariable Integer id) {
         return ResponseEntity.ok(patientService.getPatientById(id));
     }
