@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,6 +35,11 @@ import java.util.stream.Collectors;
 public class SecurityConfig {
     private static final org.slf4j.Logger logger =
             org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
+
+    // Only log authentication errors and important security events
+    private void logAuthenticationError(String message, Object... args) {
+        logger.error(message, args);
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -61,14 +66,12 @@ public class SecurityConfig {
                                                     HttpServletResponse response,
                                                     FilterChain filterChain) throws ServletException, IOException {
                         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                        if (auth != null) {
-                            logger.info("Request to: {}" + request.getRequestURI());
-                            logger.info("Authentication: {}" + auth);
-                            logger.info("Authorities: {}" + auth.getAuthorities());
+                        if (auth == null) {
+                            logAuthenticationError("No authentication found for request to: {}", request.getRequestURI());
                         }
                         filterChain.doFilter(request, response);
                     }
-                }, SecurityContextPersistenceFilter.class);
+                }, SecurityContextHolderFilter.class);
 
         return http.build();
     }
@@ -83,17 +86,14 @@ public class SecurityConfig {
     class KeycloakRealmRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
         @Override
         public Collection<GrantedAuthority> convert(Jwt jwt) {
-            logger.info("Converting JWT to authorities. JWT: {}", jwt.getTokenValue());
-
             if (jwt.getClaim("realm_access") == null) {
-                logger.warn("No realm_access claim found");
+                logAuthenticationError("No realm_access claim found in JWT");
                 return new ArrayList<>();
             }
 
-            @SuppressWarnings("unchecked")
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
             if (realmAccess.get("roles") == null) {
-                System.out.println("No roles found in realm_access");
+                logAuthenticationError("No roles found in realm_access");
                 return new ArrayList<>();
             }
 
@@ -105,7 +105,6 @@ public class SecurityConfig {
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 
-            logger.info("Converted authorities: {}", authorities);
             return authorities;
         }
     }

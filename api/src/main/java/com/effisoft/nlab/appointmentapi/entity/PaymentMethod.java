@@ -24,9 +24,6 @@ public class PaymentMethod {
     @Column(length = 200)
     private String description;
 
-    @Column(nullable = false)
-    private boolean isActive = true;
-
     @Column(name = "DisplayOrder")
     private Integer displayOrder;
 

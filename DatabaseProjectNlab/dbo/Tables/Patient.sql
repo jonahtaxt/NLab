@@ -5,6 +5,7 @@ CREATE TABLE [dbo].[Patient] (
     [Email]     NVARCHAR (100) NOT NULL,
     [Phone]     NVARCHAR (20)  NULL,
     [CreatedAt] DATETIME2 (7)  DEFAULT (getdate()) NULL,
+    [UpdatedAt] DATETIME2 (7)  DEFAULT (getdate()) NULL,
     [IsActive]  BIT            DEFAULT ((1)) NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC),
     UNIQUE NONCLUSTERED ([Email] ASC)
