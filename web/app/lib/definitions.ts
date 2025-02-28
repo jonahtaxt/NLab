@@ -4,8 +4,8 @@ export type Nutritionist = {
   lastName: string;
   email: string;
   phone: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   active: boolean;
 }
 
@@ -15,9 +15,18 @@ export type Patient = {
   lastName: string;
   email: string;
   phone: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   active: boolean;
+}
+
+export type PatientDTO = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  isActive: boolean;
 }
 
 export type Jwt = {

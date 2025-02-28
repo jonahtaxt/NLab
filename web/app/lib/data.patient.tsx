@@ -1,14 +1,5 @@
-import { authGet } from "./auth";
-import { Patient } from "./definitions";
-
-export async function fetchActivePatients(): Promise<Patient[]> {
-    try {
-      return await authGet<Patient[]>('/patients/active');
-    } catch (err) {
-      console.error('API error:', err);
-      throw new Error('Failed to fetch patient data');
-    }
-  }
+import { authGet, authPost } from "./auth";
+import { Patient, PatientDTO } from "./definitions";
 
 export async function fetchAllPatients(): Promise<Patient[]> {
     try {
@@ -16,5 +7,14 @@ export async function fetchAllPatients(): Promise<Patient[]> {
     } catch (err) {
       console.error('API error:', err);
       throw new Error('Failed to fetch patient data');
+    }
+  }
+
+export async function insertPatient(patient: PatientDTO): Promise<Patient> {
+    try {
+      return await authPost<Patient>('/api/patients', patient);
+    } catch (err) {
+      console.error('API error:', err);
+      throw new Error('Failed to create patient');
     }
   }

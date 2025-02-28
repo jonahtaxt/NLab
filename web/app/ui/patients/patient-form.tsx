@@ -5,7 +5,8 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Patient } from '@/app/lib/definitions';
+import { Patient, PatientDTO } from '@/app/lib/definitions';
+import { insertPatient } from '@/app/lib/data.patient';
 
 const PatientForm = ({ patient, onClose }: { patient?: Patient | null; onClose: () => void }) => {
     const [formData, setFormData] = useState({
@@ -24,9 +25,17 @@ const PatientForm = ({ patient, onClose }: { patient?: Patient | null; onClose: 
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Submitting patient data:', formData);
+        const patientDTO: PatientDTO = {
+            id: patient?.id || 0,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            isActive: formData.active
+        }
+        const newPatient = await insertPatient(patientDTO);
         onClose();
     };
 

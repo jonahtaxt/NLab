@@ -51,7 +51,7 @@ public class PatientController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<Patient> getPatientById(@PathVariable Integer id) {
         return ResponseEntity.ok(patientService.getPatientById(id));
     }
