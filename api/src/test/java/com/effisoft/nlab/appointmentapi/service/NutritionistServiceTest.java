@@ -146,7 +146,7 @@ class NutritionistServiceTest {
                 existingNutritionist,
                 createNutritionistWithEmail("another@example.com")
         );
-        when(nutritionistRepository.findByIsActiveTrue()).thenReturn(activeNutritionists);
+        when(nutritionistRepository.findByActiveTrue()).thenReturn(activeNutritionists);
 
         // Act
         List<Nutritionist> result = nutritionistService.getAllActiveNutritionists();
@@ -154,7 +154,7 @@ class NutritionistServiceTest {
         // Assert
         assertEquals(2, result.size());
         assertTrue(result.stream().allMatch(Nutritionist::isActive));
-        verify(nutritionistRepository).findByIsActiveTrue();
+        verify(nutritionistRepository).findByActiveTrue();
     }
 
     @Test

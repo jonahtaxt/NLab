@@ -80,7 +80,7 @@ public class NutritionistService {
 
     @Transactional(readOnly = true)
     public List<Nutritionist> getAllActiveNutritionists() {
-        return nutritionistRepository.findByIsActiveTrue();
+        return nutritionistRepository.findByActiveTrue();
     }
 
     @Transactional

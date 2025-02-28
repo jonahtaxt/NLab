@@ -91,7 +91,7 @@ class CardPaymentTypeServiceTest {
     void getAllActiveCardPaymentTypes_ShouldReturnOnlyActiveTypes() {
         // Arrange
         List<CardPaymentType> activeTypes = Arrays.asList(existingType);
-        when(cardPaymentTypeRepository.findByIsActiveTrue()).thenReturn(activeTypes);
+        when(cardPaymentTypeRepository.findByActiveTrue()).thenReturn(activeTypes);
 
         // Act
         List<CardPaymentType> result = cardPaymentTypeService.getAllActiveCardPaymentTypes();
@@ -99,7 +99,7 @@ class CardPaymentTypeServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertTrue(result.get(0).isActive());
-        verify(cardPaymentTypeRepository).findByIsActiveTrue();
+        verify(cardPaymentTypeRepository).findByActiveTrue();
     }
 
     @Test

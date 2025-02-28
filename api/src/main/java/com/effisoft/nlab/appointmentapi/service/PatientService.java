@@ -57,7 +57,7 @@ public class PatientService {
 
     @Transactional(readOnly = true)
     public List<Patient> getAllActivePatients() {
-        return patientRepository.findByIsActiveTrue();
+        return patientRepository.findByActiveTrue();
     }
 
     @Transactional(readOnly = true)
@@ -117,6 +117,7 @@ public class PatientService {
         patient.setLastName(HtmlUtils.htmlEscape(dto.getLastName().trim()));
         patient.setEmail(dto.getEmail().toLowerCase().trim());
         patient.setPhone(dto.getPhone() != null ? dto.getPhone().trim() : null);
+        patient.setActive(dto.isActive());
     }
 
     private Patient findById(Integer id) {

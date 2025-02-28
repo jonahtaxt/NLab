@@ -55,4 +55,11 @@ public class PatientController {
     public ResponseEntity<Patient> getPatientById(@PathVariable Integer id) {
         return ResponseEntity.ok(patientService.getPatientById(id));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    public ResponseEntity<Void> deletePatient(@PathVariable Integer id) {
+        patientService.deactivatePatient(id);
+        return ResponseEntity.noContent().build();
+    }
 }

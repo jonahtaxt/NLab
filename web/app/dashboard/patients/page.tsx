@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { fetchAllPatients } from '@/app/lib/data.patient';
-import PatientTable from '@/app/ui/patients/active-patients';
+import PatientTable from '@/app/ui/patients/patients-table';
 import { Patient } from '@/app/lib/definitions';
 
 export default function Page() {

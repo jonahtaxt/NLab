@@ -1,5 +1,7 @@
-import '@/app/ui/global.css';
+import '@/ui/global.css';
 import {inter} from '@/app/ui/fonts';
+import { Toaster } from 'sonner';
+import { ToastProvider } from '@/components/toaster';
 
 export default function RootLayout({
   children,
@@ -8,7 +10,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`} >{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        {children}
+        <ToastProvider />
+      </body>
     </html>
   );
 }

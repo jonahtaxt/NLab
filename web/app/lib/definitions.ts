@@ -26,7 +26,7 @@ export type PatientDTO = {
   lastName: string;
   email: string;
   phone: string;
-  isActive: boolean;
+  active: boolean;
 }
 
 export type Jwt = {

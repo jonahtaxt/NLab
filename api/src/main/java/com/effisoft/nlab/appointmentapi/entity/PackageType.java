@@ -43,6 +43,6 @@ public class PackageType {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal nutritionistRate;
 
-    @Column(nullable = false)
-    private boolean isActive;
+    @Column(name = "Active", nullable = false)
+    private boolean active;
 }

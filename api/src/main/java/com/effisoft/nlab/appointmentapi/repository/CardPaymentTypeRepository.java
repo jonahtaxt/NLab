@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface CardPaymentTypeRepository extends JpaRepository<CardPaymentType, Integer> {
-    List<CardPaymentType> findByIsActiveTrue();
+    List<CardPaymentType> findByActiveTrue();
 }

@@ -115,14 +115,14 @@ public class PatientServiceTest {
         patient2.setActive(true);
         List<Patient> activePatients = Arrays.asList(patient, patient2);
 
-        when(patientRepository.findByIsActiveTrue()).thenReturn(activePatients);
+        when(patientRepository.findByActiveTrue()).thenReturn(activePatients);
 
         // Act
         List<Patient> result = patientService.getAllActivePatients();
 
         // Assert
         assertEquals(2, result.size());
-        verify(patientRepository).findByIsActiveTrue();
+        verify(patientRepository).findByActiveTrue();
     }
 
     @Test

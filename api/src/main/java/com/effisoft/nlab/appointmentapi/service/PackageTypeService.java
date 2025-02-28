@@ -33,7 +33,7 @@ public class PackageTypeService {
 
     @Transactional(readOnly = true)
     public List<PackageType> getAllActivePackageTypes() {
-        return packageTypeRepository.findByIsActiveTrue();
+        return packageTypeRepository.findByActiveTrue();
     }
 
     @Transactional(readOnly = true)

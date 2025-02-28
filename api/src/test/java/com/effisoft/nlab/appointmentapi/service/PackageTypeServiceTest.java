@@ -94,7 +94,7 @@ class PackageTypeServiceTest {
     void getAllActivePackageTypes_ShouldReturnOnlyActivePackageTypes() {
         // Arrange
         List<PackageType> activePackageTypes = Arrays.asList(existingPackageType);
-        when(packageTypeRepository.findByIsActiveTrue()).thenReturn(activePackageTypes);
+        when(packageTypeRepository.findByActiveTrue()).thenReturn(activePackageTypes);
 
         // Act
         List<PackageType> result = packageTypeService.getAllActivePackageTypes();
@@ -102,7 +102,7 @@ class PackageTypeServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertTrue(result.get(0).isActive());
-        verify(packageTypeRepository).findByIsActiveTrue();
+        verify(packageTypeRepository).findByActiveTrue();
     }
 
     @Test

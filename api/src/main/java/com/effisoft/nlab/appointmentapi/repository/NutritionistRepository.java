@@ -6,6 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NutritionistRepository extends JpaRepository<Nutritionist, Integer> {
-    List<Nutritionist> findByIsActiveTrue();
+    List<Nutritionist> findByActiveTrue();
     Optional<Nutritionist> findByEmail(String email);
 }

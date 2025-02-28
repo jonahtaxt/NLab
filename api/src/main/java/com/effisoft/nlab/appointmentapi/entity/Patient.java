@@ -41,6 +41,6 @@ public class Patient {
     @Column(nullable = true)
     private LocalDateTime updatedAt;
 
-    @Column(nullable = false)
-    private boolean isActive;
+    @Column(name = "Active", nullable = false)
+    private boolean active;
 }

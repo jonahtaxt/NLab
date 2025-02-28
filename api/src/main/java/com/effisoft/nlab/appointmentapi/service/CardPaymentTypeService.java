@@ -36,7 +36,7 @@ public class CardPaymentTypeService {
 
     @Transactional(readOnly = true)
     public List<CardPaymentType> getAllActiveCardPaymentTypes() {
-        return cardPaymentTypeRepository.findByIsActiveTrue();
+        return cardPaymentTypeRepository.findByActiveTrue();
     }
 
     @Transactional(readOnly = true)

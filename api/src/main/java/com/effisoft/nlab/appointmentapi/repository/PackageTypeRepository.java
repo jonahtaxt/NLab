@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PackageTypeRepository extends JpaRepository<PackageType, Integer> {
-    List<PackageType> findByIsActiveTrue();
+    List<PackageType> findByActiveTrue();
 }

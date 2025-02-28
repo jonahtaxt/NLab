@@ -28,5 +28,5 @@ public class PatientDTO {
     @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
     private String phone;
 
-    private boolean isActive;
+    private boolean active;
 }

@@ -6,7 +6,7 @@ CREATE TABLE [dbo].[PackageType] (
     [IsBundle]             BIT             DEFAULT ((0)) NULL,
     [Price]                DECIMAL (10, 2) NOT NULL,
     [NutritionistRate]     DECIMAL (10, 2) NOT NULL,
-    [IsActive]             BIT             DEFAULT ((1)) NULL,
+    [Active]             BIT             DEFAULT ((1)) NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 
