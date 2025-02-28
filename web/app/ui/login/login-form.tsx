@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import useAuth from '@/app/hooks/useAuth';
+import Image from 'next/image';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({
@@ -38,9 +39,12 @@ const Login = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen flex-col items-center justify-center">
+            <div className="mb-8 flex justify-center">
+                <Image src="/logo.png" alt="Logo" width={200} height={200} priority />
+            </div>
             <form onSubmit={handleSubmit} className="p-6 border rounded-lg shadow-md w-80 space-y-4">
-                <h2 className="text-xl font-semibold">Iniciar sesión</h2>
+                <h2 className="text-xl font-semibold text-center">Iniciar sesión</h2>
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 <div>
                     <Input 

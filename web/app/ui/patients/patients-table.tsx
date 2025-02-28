@@ -92,9 +92,9 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
     return (
         <>
             <Card className="w-full">
-                <CardHeader>
+                <CardHeader className='bg-gray-50 rounded-t-xl'>
                     <div className="flex justify-between items-center">
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 bg-nl text-nlab-black">
                             Pacientes
                             {isRefreshing && <Loader2 className="animate-spin h-4 w-4" />}
                         </CardTitle>
