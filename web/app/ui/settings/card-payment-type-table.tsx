@@ -1,26 +1,26 @@
 'use client';
 
-import { fetchAllPaymentMethods } from "@/app/lib/data.settings";
-import { PaymentMethod } from "@/app/lib/definitions";
+import { fetchAllCardPaymentTypes } from "@/app/lib/data.settings";
+import { CardPaymentType, PaymentMethod } from "@/app/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { showToast } from "@/lib/toaster-util";
 import { Loader2, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const PaymentMethodTable = ({ paymentMethods } : { paymentMethods: PaymentMethod[] }) => {
+const CardPaymentTypeTable = ({ cardPaymentTypes } : { cardPaymentTypes: CardPaymentType[] }) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [paymentMethodsList, setPaymentMethods] = useState<PaymentMethod[]>([]);
+    const [cardPaymentTypesList, setCardPaymentTypesList] = useState<CardPaymentType[]>([]);
 
     useEffect(() => {
-        setPaymentMethods(paymentMethods);
-    }, [paymentMethods]);
+        setCardPaymentTypesList(cardPaymentTypes);
+    }, [cardPaymentTypes]);
 
     const refreshPaymentMethods = async () => {
         setIsRefreshing(true);
         try {
-            const refreshedPaymentMethods = await fetchAllPaymentMethods();
-            setPaymentMethods(refreshedPaymentMethods);
+            const refreshedCardPaymentTypes = await fetchAllCardPaymentTypes();
+            setCardPaymentTypesList(refreshedCardPaymentTypes);
             if (isRefreshing) setIsRefreshing(false);
         } catch (err) {
             console.error('Failed to load payment methods:', err);
@@ -36,7 +36,7 @@ const PaymentMethodTable = ({ paymentMethods } : { paymentMethods: PaymentMethod
                 <CardHeader className="bg-gray-50 rounded-t-xl">
                     <div className="flex justify-between items-center">
                         <CardTitle className="flex itemts-center gap-2 bg-nl text-nlab-black">
-                            M&eacute;todos de Pago
+                            Tipos de Pagos con Tarjeta
                         </CardTitle>
                     </div>
                 </CardHeader>
@@ -47,21 +47,34 @@ const PaymentMethodTable = ({ paymentMethods } : { paymentMethods: PaymentMethod
                                 <tr className="border-b">
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Nombre</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Descripci&oacute;n</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Orden</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Porcentaje Bancario</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Activo</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {paymentMethods.map((paymentMethod) => (
-                                        <tr key={paymentMethod.id} className="border-b hover:bg-gray-50">
+                                {cardPaymentTypesList.map((cardPaymentType) => (
+                                        <tr key={cardPaymentType.id} className="border-b hover:bg-gray-50">
                                             <td className="px-4 py-3 text-sm">
-                                                {paymentMethod.name}
+                                                {cardPaymentType.name}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
-                                                {paymentMethod.description}
+                                                {cardPaymentType.description}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
-                                                {paymentMethod.displayOrder}
+                                                {cardPaymentType.bankFeePercentage}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-gray-600">
+                                                {cardPaymentType.numberOfInstallments}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm text-gray-600">
+                                                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                                                    cardPaymentType.active
+                                                        ? 'bg-green-100 text-green-700' 
+                                                        : 'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                    {cardPaymentType.active ? 'Activo' : 'Inactivo'}
+                                                </span>
                                             </td>
                                             <td className="px-4 py-3 text-sm">
                                                 <Button variant="ghost" onClick={() => alert('Edit')}>
@@ -79,4 +92,4 @@ const PaymentMethodTable = ({ paymentMethods } : { paymentMethods: PaymentMethod
     );
 };
 
-export default PaymentMethodTable;
+export default CardPaymentTypeTable;

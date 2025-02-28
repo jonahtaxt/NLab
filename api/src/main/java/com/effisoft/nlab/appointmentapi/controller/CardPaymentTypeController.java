@@ -27,14 +27,14 @@ public class CardPaymentTypeController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<List<CardPaymentType>> getAllActiveCardPaymentTypes() {
         List<CardPaymentType> types = cardPaymentTypeService.getAllActiveCardPaymentTypes();
         return ResponseEntity.ok(types);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<CardPaymentType> getCardPaymentTypeById(@PathVariable Integer id) {
         CardPaymentType type = cardPaymentTypeService.getCardPaymentTypeById(id);
         return ResponseEntity.ok(type);

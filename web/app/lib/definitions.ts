@@ -51,3 +51,12 @@ export type PaymentMethod = {
   description: string;
   displayOrder: number;
 }
+
+export type CardPaymentType = {
+  id: number;
+  name: string;
+  description: string;
+  bankFeePercentage: string; // BigDecimal from Java
+  numberOfInstallments: number;
+  active: boolean;
+}
