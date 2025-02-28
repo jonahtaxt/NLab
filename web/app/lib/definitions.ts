@@ -44,3 +44,10 @@ export type LoginResponseResult = {
   jwt: Jwt;
   ok: boolean;
 }
+
+export type PaymentMethod = {
+  id: number;
+  name: string;
+  description: string;
+  displayOrder: number;
+}
