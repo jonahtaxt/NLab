@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Pencil, Plus, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import PackageTypeForm from "@/app/ui/settings/package-type-form";
-import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
-import { DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { showToast } from "@/lib/toaster-util";
 import { fetchAllPackageTypes } from "@/app/lib/data.settings";
 
