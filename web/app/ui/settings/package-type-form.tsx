@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PackageType, PackageTypeDTO } from '@/app/lib/definitions';
-import { insertPatient, updatePatient } from '@/app/lib/data.patient';
 import { Loader2 } from 'lucide-react';
 import { showToast } from '@/lib/toaster-util';
 import { insertPackageType, updatePackageType } from '@/app/lib/data.settings';
 
-interface PacakgeTypeFormProps {
+interface PackageTypeFormProps {
     packageType?: PackageType | null;
     onClose: () => void;
     onSuccess?: () => void;
@@ -27,14 +26,14 @@ const PackageTypeForm = ({
     onSubmitStart,
     onSubmitEnd,
     isSubmitting = false
-}: PacakgeTypeFormProps) => {
+}: PackageTypeFormProps) => {
     const [formData, setFormData] = useState({
         name: packageType?.name || '',
         description: packageType?.description || '',
         numberOfAppointments: packageType?.numberOfAppointments || '',
         isBundle: packageType?.isBundle ?? false,
-        price: packageType?.price ?? '',
-        nutritionistRate: packageType?.nutritionistRate ?? '',
+        price: packageType?.price || '',
+        nutritionistRate: packageType?.nutritionistRate || '',
         active: packageType?.active ?? true,
     });
 
@@ -69,10 +68,13 @@ const PackageTypeForm = ({
 
         if (!formData.nutritionistRate) {
             newErrors.nutritionistRate = 'La tarifa de nutricionista es requerida';
-        } else if (!/^\d+(\.\d{1,2})?$/.test(formData.nutritionistRate.toString())) {
-            newErrors.nutritionistRate = 'La tarifa de nutricionista debe ser un número con máximo 2 decimales';
-        } else if (parseFloat(formData.nutritionistRate.toString()) <= 0) {
-            newErrors.nutritionistRate = 'La tarifa de nutricionista debe ser mayor a 0';
+        } else if (!/^0?\.\d{1,2}$/.test(formData.nutritionistRate.toString())) {
+            newErrors.nutritionistRate = 'La tarifa debe ser un decimal entre 0 y 1 (ejemplo: 0.70)';
+        } else {
+            const rate = parseFloat(formData.nutritionistRate.toString());
+            if (rate <= 0 || rate >= 1) {
+                newErrors.nutritionistRate = 'La tarifa debe ser mayor a 0 y menor a 1';
+            }
         }
 
         setErrors(newErrors);
@@ -111,19 +113,18 @@ const PackageTypeForm = ({
                 description: formData.description,
                 numberOfAppointments: parseInt(formData.numberOfAppointments.toString()),
                 isBundle: formData.isBundle,
-                price: formData.price,
-                nutritionistRate: formData.nutritionistRate,
+                price: formData.price.toString(),
+                nutritionistRate: formData.nutritionistRate.toString(),
                 active: formData.active
             }
 
             if (packageType) {
-                const updatedPatient = await updatePackageType(packageTypeDTO);
+                const updatedPackageType = await updatePackageType(packageTypeDTO);
+                showToast.success('Paquete actualizado correctamente');
             } else {
-                const newPatient = await insertPackageType(packageTypeDTO);
+                const newPackageType = await insertPackageType(packageTypeDTO);
+                showToast.success('Paquete creado correctamente');
             }
-
-            // Show success notification
-            showToast.success(packageType?.id ? 'Paciente actualizado correctamente' : 'Paciente creado correctamente');
 
             // Call the success callback to trigger refresh in parent
             if (onSuccess) {
@@ -170,7 +171,7 @@ const PackageTypeForm = ({
 
             <div>
                 <Label htmlFor="description" className="flex justify-between">
-                    <span>Descripci&oacute;n</span>
+                    <span>Descripción</span>
                     {errors.description && <span className="text-red-500 text-xs">{errors.description}</span>}
                 </Label>
                 <Input
@@ -191,7 +192,8 @@ const PackageTypeForm = ({
                 <Input
                     id="numberOfAppointments"
                     name="numberOfAppointments"
-                    type="numberOfAppointments"
+                    type="number"
+                    min="1"
                     value={formData.numberOfAppointments}
                     onChange={handleChange}
                     className={errors.numberOfAppointments ? "border-red-500" : ""}
@@ -208,7 +210,7 @@ const PackageTypeForm = ({
                     onChange={handleChange}
                     disabled={isSubmitting}
                 />
-                <Label htmlFor="isBundle">Paquete</Label>
+                <Label htmlFor="isBundle">Es Paquete</Label>
             </div>
 
             <div>
@@ -219,28 +221,37 @@ const PackageTypeForm = ({
                 <Input
                     id="price"
                     name="price"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
                     value={formData.price}
                     onChange={handleChange}
                     className={errors.price ? "border-red-500" : ""}
                     disabled={isSubmitting}
-                    maxLength={10}
                 />
             </div>
 
             <div>
                 <Label htmlFor="nutritionistRate" className="flex justify-between">
-                    <span>Teléfono</span>
+                    <span>Tarifa del Nutriólogo (0.01-0.99)</span>
                     {errors.nutritionistRate && <span className="text-red-500 text-xs">{errors.nutritionistRate}</span>}
                 </Label>
                 <Input
                     id="nutritionistRate"
                     name="nutritionistRate"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max="0.99"
+                    placeholder="Ejemplo: 0.70 (70%)"
                     value={formData.nutritionistRate}
                     onChange={handleChange}
                     className={errors.nutritionistRate ? "border-red-500" : ""}
                     disabled={isSubmitting}
-                    maxLength={10}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                    Porcentaje expresado como decimal (ej: 0.70 = 70%)
+                </p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -252,7 +263,7 @@ const PackageTypeForm = ({
                     onChange={handleChange}
                     disabled={isSubmitting}
                 />
-                <Label htmlFor="isActive">Activo</Label>
+                <Label htmlFor="active">Activo</Label>
             </div>
 
             <DialogFooter>
