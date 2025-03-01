@@ -70,13 +70,11 @@ class PaymentMethodServiceTest {
         // Act & Assert
         PaymentMethodServiceException exception = assertThrows(
                 PaymentMethodServiceException.class,
-                () -> paymentMethodService.createPaymentMethod(validDTO)
-        );
+                () -> paymentMethodService.createPaymentMethod(validDTO));
 
         assertEquals(
-                "Failed to create payment method due to data integrity violation",
-                exception.getMessage()
-        );
+                "Create Payment Method failed due to data integrity violation",
+                exception.getMessage());
     }
 
     @Test
@@ -115,8 +113,7 @@ class PaymentMethodServiceTest {
         // Act & Assert
         PaymentMethodServiceException exception = assertThrows(
                 PaymentMethodServiceException.class,
-                () -> paymentMethodService.getPaymentMethodById(999)
-        );
+                () -> paymentMethodService.getPaymentMethodById(999));
 
         assertEquals("Payment method not found with id: 999", exception.getMessage());
         verify(paymentMethodRepository).findById(999);
@@ -165,10 +162,9 @@ class PaymentMethodServiceTest {
         // Act & Assert
         PaymentMethodServiceException exception = assertThrows(
                 PaymentMethodServiceException.class,
-                () -> paymentMethodService.deletePaymentMethod(999)
-        );
+                () -> paymentMethodService.deletePaymentMethod(999));
 
-        assertEquals("Failed to delete payment method", exception.getMessage());
+        assertEquals("Payment method not found with id: 999", exception.getMessage());
         verify(paymentMethodRepository).findById(999);
         verify(paymentMethodRepository, never()).delete(any(PaymentMethod.class));
     }

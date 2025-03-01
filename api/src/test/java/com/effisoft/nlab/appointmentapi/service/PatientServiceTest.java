@@ -78,13 +78,11 @@ public class PatientServiceTest {
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.createPatient(patientDTO)
-        );
+                () -> patientService.createPatient(patientDTO));
 
         assertEquals(
-                String.format("A Patient with email %s already exists", patientDTO.getEmail()),
-                exception.getMessage()
-        );
+                String.format("Patient with email %s already exists", patientDTO.getEmail()),
+                exception.getMessage());
         verify(patientRepository).findByEmail(patientDTO.getEmail());
         verify(patientRepository, never()).save(any(Patient.class));
     }
@@ -99,13 +97,11 @@ public class PatientServiceTest {
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.createPatient(patientDTO)
-        );
+                () -> patientService.createPatient(patientDTO));
 
         assertEquals(
-                "Failed to create patient due to data integrity violation",
-                exception.getMessage()
-        );
+                "Create Patient failed due to data integrity violation",
+                exception.getMessage());
     }
 
     @Test
@@ -147,8 +143,7 @@ public class PatientServiceTest {
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.getPatientById(1)
-        );
+                () -> patientService.getPatientById(1));
 
         assertEquals("Patient not found with id: 1", exception.getMessage());
         verify(patientRepository).findById(1);
@@ -194,8 +189,7 @@ public class PatientServiceTest {
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.updatePatient(1, updatedDTO)
-        );
+                () -> patientService.updatePatient(1, updatedDTO));
 
         assertEquals("Email is already in use: existing@example.com", exception.getMessage());
     }
@@ -223,8 +217,7 @@ public class PatientServiceTest {
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.deactivatePatient(1)
-        );
+                () -> patientService.deactivatePatient(1));
 
         assertEquals("Patient not found with id: 1", exception.getMessage());
         verify(patientRepository).findById(1);

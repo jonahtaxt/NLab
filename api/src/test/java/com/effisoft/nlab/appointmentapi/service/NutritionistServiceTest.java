@@ -79,18 +79,17 @@ class NutritionistServiceTest {
     @Test
     void createNutritionist_WhenEmailExists_ShouldThrowException() {
         // Arrange
-        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail())).thenReturn(Optional.of(existingNutritionist));
+        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail()))
+                .thenReturn(Optional.of(existingNutritionist));
 
         // Act & Assert
         NutritionistServiceException exception = assertThrows(
                 NutritionistServiceException.class,
-                () -> nutritionistService.createNutritionist(validNutritionistDTO)
-        );
+                () -> nutritionistService.createNutritionist(validNutritionistDTO));
 
         assertEquals(
                 String.format("Nutritionist with email %s already exists", validNutritionistDTO.getEmail()),
-                exception.getMessage()
-        );
+                exception.getMessage());
         verify(nutritionistRepository).findByEmail(validNutritionistDTO.getEmail());
         verify(nutritionistRepository, never()).save(any(Nutritionist.class));
     }
@@ -99,15 +98,15 @@ class NutritionistServiceTest {
     void createNutritionist_WhenDataIntegrityViolation_ShouldThrowException() {
         // Arrange
         when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail())).thenReturn(Optional.empty());
-        when(nutritionistRepository.save(any(Nutritionist.class))).thenThrow(new DataIntegrityViolationException("Database error"));
+        when(nutritionistRepository.save(any(Nutritionist.class)))
+                .thenThrow(new DataIntegrityViolationException("Database error"));
 
         // Act & Assert
         NutritionistServiceException exception = assertThrows(
                 NutritionistServiceException.class,
-                () -> nutritionistService.createNutritionist(validNutritionistDTO)
-        );
+                () -> nutritionistService.createNutritionist(validNutritionistDTO));
 
-        assertEquals("Failed to create nutritionist due to data integrity violation", exception.getMessage());
+        assertEquals("Create Nutritionist failed due to data integrity violation", exception.getMessage());
         assertNotNull(exception.getCause());
         assertTrue(exception.getCause() instanceof DataIntegrityViolationException);
     }
@@ -144,8 +143,7 @@ class NutritionistServiceTest {
         // Arrange
         List<Nutritionist> activeNutritionists = Arrays.asList(
                 existingNutritionist,
-                createNutritionistWithEmail("another@example.com")
-        );
+                createNutritionistWithEmail("another@example.com"));
         when(nutritionistRepository.findByActiveTrue()).thenReturn(activeNutritionists);
 
         // Act
@@ -182,8 +180,7 @@ class NutritionistServiceTest {
         // Act & Assert
         NutritionistServiceException exception = assertThrows(
                 NutritionistServiceException.class,
-                () -> nutritionistService.deactivateNutritionist(id)
-        );
+                () -> nutritionistService.deactivateNutritionist(id));
 
         assertEquals("Nutritionist not found with id: " + id, exception.getMessage());
         verify(nutritionistRepository).findById(id);

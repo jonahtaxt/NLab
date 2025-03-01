@@ -4,9 +4,10 @@ import com.effisoft.nlab.appointmentapi.dto.CardPaymentTypeDTO;
 import com.effisoft.nlab.appointmentapi.entity.CardPaymentType;
 import com.effisoft.nlab.appointmentapi.exception.CardPaymentTypeServiceException;
 import com.effisoft.nlab.appointmentapi.repository.CardPaymentTypeRepository;
+import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -22,51 +23,62 @@ public class CardPaymentTypeService {
 
     @Transactional
     public CardPaymentType createCardPaymentType(@Valid CardPaymentTypeDTO dto) {
-        try {
-            CardPaymentType cardPaymentType = new CardPaymentType();
-            updateCardPaymentTypeFromDTO(cardPaymentType, dto);
-            cardPaymentType.setActive(true);
-
-            return cardPaymentTypeRepository.save(cardPaymentType);
-        } catch (DataIntegrityViolationException e) {
-            throw new CardPaymentTypeServiceException(
-                    "Failed to create card payment type due to data integrity violation", e);
-        }
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                CardPaymentType cardPaymentType = new CardPaymentType();
+                updateCardPaymentTypeFromDTO(cardPaymentType, dto);
+                cardPaymentType.setActive(true);
+                return cardPaymentTypeRepository.save(cardPaymentType);
+            },
+            CardPaymentTypeServiceException::new,
+            "Create Card Payment Type"
+        );
     }
 
     @Transactional(readOnly = true)
     public List<CardPaymentType> getAllActiveCardPaymentTypes() {
-        return cardPaymentTypeRepository.findByActiveTrue();
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> cardPaymentTypeRepository.findByActiveTrue(),
+            CardPaymentTypeServiceException::new,
+            "Get All Active Card Payment Types"
+        );
     }
 
     @Transactional(readOnly = true)
     public CardPaymentType getCardPaymentTypeById(Integer id) {
-        return cardPaymentTypeRepository.findById(id)
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> cardPaymentTypeRepository.findById(id)
                 .orElseThrow(() -> new CardPaymentTypeServiceException(
-                        "Card payment type not found with id: " + id));
+                    "Card payment type not found with id: " + id)),
+            CardPaymentTypeServiceException::new,
+            "Get Card Payment Type by ID"
+        );
     }
 
     @Transactional
     public CardPaymentType updateCardPaymentType(Integer id, @Valid CardPaymentTypeDTO dto) {
-        try {
-            CardPaymentType existingType = getCardPaymentTypeById(id);
-            updateCardPaymentTypeFromDTO(existingType, dto);
-            return cardPaymentTypeRepository.save(existingType);
-        } catch (DataIntegrityViolationException e) {
-            throw new CardPaymentTypeServiceException(
-                    "Failed to update card payment type due to data integrity violation", e);
-        }
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                CardPaymentType existingType = getCardPaymentTypeById(id);
+                updateCardPaymentTypeFromDTO(existingType, dto);
+                return cardPaymentTypeRepository.save(existingType);
+            },
+            CardPaymentTypeServiceException::new,
+            "Update Card Payment Type"
+        );
     }
 
     @Transactional
-    public void deactivateCardPaymentType(Integer id) {
-        try {
-            CardPaymentType cardPaymentType = getCardPaymentTypeById(id);
-            cardPaymentType.setActive(false);
-            cardPaymentTypeRepository.save(cardPaymentType);
-        } catch (Exception e) {
-            throw new CardPaymentTypeServiceException("Failed to deactivate card payment type", e);
-        }
+    public CardPaymentType deactivateCardPaymentType(Integer id) {
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                CardPaymentType cardPaymentType = getCardPaymentTypeById(id);
+                cardPaymentType.setActive(false);
+                return cardPaymentTypeRepository.save(cardPaymentType);
+            },
+            CardPaymentTypeServiceException::new,
+            "Deactivate Card Payment Type"
+        );
     }
 
     private void updateCardPaymentTypeFromDTO(CardPaymentType cardPaymentType, CardPaymentTypeDTO dto) {

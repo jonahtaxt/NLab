@@ -85,7 +85,7 @@ class PackageTypeServiceTest {
         );
 
         assertEquals(
-                "Failed to create package type due to data integrity violation",
+                "Create Package Type failed due to data integrity violation",
                 exception.getMessage()
         );
     }

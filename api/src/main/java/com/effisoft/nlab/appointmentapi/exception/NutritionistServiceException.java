@@ -8,8 +8,4 @@ public class NutritionistServiceException extends AppointmentApiException{
     public NutritionistServiceException(String message, Throwable cause) {
         super(message, cause);
     }
-
-    public NutritionistServiceException(String message, String errorCode) {
-        super(message);
-    }
 }

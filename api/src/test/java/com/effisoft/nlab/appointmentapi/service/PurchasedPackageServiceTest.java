@@ -132,8 +132,7 @@ class PurchasedPackageServiceTest {
         // Act & Assert
         PurchasedPackageServiceException exception = assertThrows(
                 PurchasedPackageServiceException.class,
-                () -> purchasedPackageService.createPurchasedPackage(validDTO)
-        );
+                () -> purchasedPackageService.createPurchasedPackage(validDTO));
 
         assertEquals("Patient not found", exception.getMessage());
         verify(patientRepository).findById(1);
@@ -153,13 +152,11 @@ class PurchasedPackageServiceTest {
         // Act & Assert
         PurchasedPackageServiceException exception = assertThrows(
                 PurchasedPackageServiceException.class,
-                () -> purchasedPackageService.createPurchasedPackage(validDTO)
-        );
+                () -> purchasedPackageService.createPurchasedPackage(validDTO));
 
         assertEquals(
-                "Failed to create purchased package due to data integrity violation",
-                exception.getMessage()
-        );
+                "Create Purchased Package failed due to data integrity violation",
+                exception.getMessage());
     }
 
     @Test
@@ -198,8 +195,7 @@ class PurchasedPackageServiceTest {
         // Act & Assert
         PurchasedPackageServiceException exception = assertThrows(
                 PurchasedPackageServiceException.class,
-                () -> purchasedPackageService.getPurchasedPackageById(999)
-        );
+                () -> purchasedPackageService.getPurchasedPackageById(999));
 
         assertEquals("Purchased package not found with id: 999", exception.getMessage());
         verify(purchasedPackageRepository).findById(999);
