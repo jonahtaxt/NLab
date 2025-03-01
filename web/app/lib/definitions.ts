@@ -66,7 +66,7 @@ export type PackageType = {
   name: string;
   description: string;
   numberOfAppointments: number;
-  isBundle: boolean;
+  bundle: boolean;
   price: string;
   nutritionistRate: string;
   active: boolean;
@@ -77,7 +77,7 @@ export type PackageTypeDTO = {
   name: string;
   description: string;
   numberOfAppointments: number;
-  isBundle: boolean;
+  bundle: boolean;
   price: string;
   nutritionistRate: string;
   active: boolean;

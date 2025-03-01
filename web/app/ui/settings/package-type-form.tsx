@@ -31,7 +31,7 @@ const PackageTypeForm = ({
         name: packageType?.name || '',
         description: packageType?.description || '',
         numberOfAppointments: packageType?.numberOfAppointments || '',
-        isBundle: packageType?.isBundle ?? false,
+        bundle: packageType?.bundle ?? false,
         price: packageType?.price || '',
         nutritionistRate: packageType?.nutritionistRate || '',
         active: packageType?.active ?? true,
@@ -52,26 +52,26 @@ const PackageTypeForm = ({
 
         if (!formData.numberOfAppointments) {
             newErrors.numberOfAppointments = 'El número de citas es requerido';
-        } else if (!/^\d+$/.test(formData.numberOfAppointments.toString())) {
+        } else if (!/^\d+$/.test(String(formData.numberOfAppointments))) {
             newErrors.numberOfAppointments = 'El número de citas debe ser un número entero';
-        } else if (parseInt(formData.numberOfAppointments.toString()) <= 0) {
+        } else if (parseInt(String(formData.numberOfAppointments)) <= 0) {
             newErrors.numberOfAppointments = 'El número de citas debe ser mayor a 0';
         }
 
         if (!formData.price) {
             newErrors.price = 'El precio es requerido';
-        } else if (!/^\d+(\.\d{1,2})?$/.test(formData.price.toString())) {
+        } else if (!/^\d+(\.\d{1,2})?$/.test(String(formData.price))) {
             newErrors.price = 'El precio debe ser un número con máximo 2 decimales';
-        } else if (parseFloat(formData.price.toString()) <= 0) {
+        } else if (parseFloat(String(formData.price)) <= 0) {
             newErrors.price = 'El precio debe ser mayor a 0';
         }
 
         if (!formData.nutritionistRate) {
             newErrors.nutritionistRate = 'La tarifa de nutricionista es requerida';
-        } else if (!/^0?\.\d{1,2}$/.test(formData.nutritionistRate.toString())) {
+        } else if (!/^0?\.\d{1,2}$/.test(String(formData.nutritionistRate))) {
             newErrors.nutritionistRate = 'La tarifa debe ser un decimal entre 0 y 1 (ejemplo: 0.70)';
         } else {
-            const rate = parseFloat(formData.nutritionistRate.toString());
+            const rate = parseFloat(String(formData.nutritionistRate));
             if (rate <= 0 || rate >= 1) {
                 newErrors.nutritionistRate = 'La tarifa debe ser mayor a 0 y menor a 1';
             }
@@ -83,7 +83,9 @@ const PackageTypeForm = ({
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
+        
+        // Using a callback form of setState to ensure we're working with the latest state
+        setFormData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value,
         }));
@@ -111,12 +113,14 @@ const PackageTypeForm = ({
                 id: packageType?.id || 0,
                 name: formData.name,
                 description: formData.description,
-                numberOfAppointments: parseInt(formData.numberOfAppointments.toString()),
-                isBundle: formData.isBundle,
-                price: formData.price.toString(),
-                nutritionistRate: formData.nutritionistRate.toString(),
+                numberOfAppointments: parseInt(String(formData.numberOfAppointments)),
+                bundle: formData.bundle, // Correctly pass the boolean value
+                price: String(formData.price),
+                nutritionistRate: String(formData.nutritionistRate),
                 active: formData.active
-            }
+            };
+
+            console.log("Submitting package type:", packageTypeDTO);
 
             if (packageType) {
                 const updatedPackageType = await updatePackageType(packageTypeDTO);
@@ -203,14 +207,14 @@ const PackageTypeForm = ({
 
             <div className="flex items-center gap-2">
                 <input
-                    id="isBundle"
-                    name="isBundle"
+                    id="bundle"
+                    name="bundle"
                     type="checkbox"
-                    checked={formData.isBundle}
+                    checked={formData.bundle}
                     onChange={handleChange}
                     disabled={isSubmitting}
                 />
-                <Label htmlFor="isBundle">Es Paquete</Label>
+                <Label htmlFor="bundle">Es Paquete</Label>
             </div>
 
             <div>

@@ -76,5 +76,6 @@ public class PackageTypeService {
         packageType.setBundle(dto.isBundle());
         packageType.setPrice(dto.getPrice());
         packageType.setNutritionistRate(dto.getNutritionistRate());
+        packageType.setActive(dto.isActive());
     }
 }

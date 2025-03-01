@@ -19,7 +19,7 @@ public class PackageTypeDTO {
     @Min(value = 1, message = "Number of appointments must be at least 1")
     private Integer numberOfAppointments;
 
-    private boolean isBundle;
+    private boolean bundle;
 
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")

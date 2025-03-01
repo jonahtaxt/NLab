@@ -94,12 +94,11 @@ const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) =>
                                                 {packageType.numberOfAppointments}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
-                                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                                    packageType.isBundle
-                                                        ? 'bg-green-100 text-green-700' 
-                                                        : 'bg-gray-100 text-gray-700'
-                                                    }`}>
-                                                    {packageType.isBundle ? <CheckCircle /> : <XCircle />}
+                                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
+                                                    {packageType.bundle ? 
+                                                        <CheckCircle className="w-4 h-4 text-green-600" /> : 
+                                                        <XCircle className="w-4 h-4 text-red-600" />
+                                                    }
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
@@ -118,7 +117,7 @@ const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) =>
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-sm">
-                                                <Button variant="ghost" onClick={() => alert('Edit')}>
+                                                <Button variant="ghost" onClick={() => handleOpenDialog(packageType)}>
                                                     <Pencil className="w-4 h-4 text-gray-600" />
                                                 </Button>
                                             </td>

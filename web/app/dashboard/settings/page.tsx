@@ -54,10 +54,13 @@ export default function Page() {
     }
     
     return (
-        <main>
-            <PackageTypeTable packageTypes={packageTypes} />
-            <div className="flex flex-col md:flex-row md:gap-8">
-                <div className="w-full md:w-1/2 mb-6 md:mb-0">
+        <main className="space-y-8">
+            <div className="w-full">
+                <PackageTypeTable packageTypes={packageTypes} />
+            </div>
+            
+            <div className="flex flex-col md:flex-row gap-8">
+                <div className="w-full md:w-1/2">
                     <PaymentMethodTable paymentMethods={paymentMethods} />
                 </div>
                 <div className="w-full md:w-1/2">

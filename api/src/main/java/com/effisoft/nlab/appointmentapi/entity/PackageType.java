@@ -28,8 +28,8 @@ public class PackageType {
     @Column(nullable = false)
     private Integer numberOfAppointments;
 
-    @Column(nullable = false)
-    private boolean isBundle;
+    @Column(name = "Bundle", nullable = false)
+    private boolean bundle;
 
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
