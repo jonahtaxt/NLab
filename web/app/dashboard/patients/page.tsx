@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchPaginatedPatients } from '@/app/lib/data.patient';
 import PatientTable from '@/app/ui/patients/patients-table';
-import { PaginatedResponse, Patient } from '@/app/lib/definitions';
+import { Patient, PaginatedResponse } from '@/app/lib/definitions';
 import { Pagination } from '@/app/ui/pagination';
 
 export default function Page() {
     const [patientsData, setPatientsData] = useState<PaginatedResponse<Patient> | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
+    
     // Pagination state
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
@@ -18,39 +18,38 @@ export default function Page() {
     const [sortBy, setSortBy] = useState('lastName');
     const [sortDirection, setSortDirection] = useState('ASC');
 
-    useEffect(() => {
-        async function loadPatients() {
-            try {
-                setLoading(true);
-                const data = await fetchPaginatedPatients(
-                    currentPage, 
-                    pageSize, 
-                    sortBy, 
-                    sortDirection, 
-                    searchTerm
-                );
-                setPatientsData(data);
-                setLoading(false);
-            } catch (err) {
-                console.error('Failed to load patients:', err);
-                setError('Failed to load patients. Please try again later.');
-                setLoading(false);
-            }
+    // Define loadPatients outside of useEffect so it can be reused
+    const loadPatients = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = await fetchPaginatedPatients(
+                currentPage, 
+                pageSize, 
+                sortBy, 
+                sortDirection, 
+                searchTerm
+            );
+            setPatientsData(data);
+        } catch (err) {
+            console.error('Failed to load patients:', err);
+            setError('Failed to load patients. Please try again later.');
+        } finally {
+            setLoading(false);
         }
+    }, [currentPage, pageSize, sortBy, sortDirection, searchTerm]);
 
+    // Use the loadPatients function in useEffect
+    useEffect(() => {
         loadPatients();
-    }, []);
-
-    if (loading) {
-        return <div className="flex justify-center items-center h-64">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="text-red-500 p-4">{error}</div>;
-    }
+    }, [loadPatients]);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
+    };
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(0); // Reset to first page when changing page size
     };
 
     const handleSearch = (term: string) => {
@@ -67,6 +66,11 @@ export default function Page() {
             setSortDirection('ASC');
         }
         setCurrentPage(0); // Reset to first page on sort change
+    };
+
+    // Now we can use loadPatients for refreshData
+    const refreshData = () => {
+        loadPatients();
     };
 
     if (loading && !patientsData) {
@@ -86,15 +90,20 @@ export default function Page() {
                 sortBy={sortBy}
                 sortDirection={sortDirection}
                 loading={loading}
+                onRefresh={refreshData}
             />
             
             {patientsData && (
                 <Pagination
                     currentPage={patientsData.pageNumber}
+                    pageSize={patientsData.pageSize}
                     totalPages={patientsData.totalPages}
+                    totalElements={patientsData.totalElements}
                     onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
                     isFirstPage={patientsData.first}
                     isLastPage={patientsData.last}
+                    pageSizeOptions={[5, 10, 20, 50, 100]}
                 />
             )}
         </main>
