@@ -7,6 +7,8 @@ CREATE TABLE [dbo].[PackageType] (
     [Price]                DECIMAL (10, 2) NOT NULL,
     [NutritionistRate]     DECIMAL (10, 2) NOT NULL,
     [Active]             BIT             DEFAULT ((1)) NULL,
+    [CreatedAt] DATETIME2 (7)  DEFAULT (getdate()) NULL,
+    [UpdatedAt] DATETIME2 (7)  DEFAULT (getdate()) NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 

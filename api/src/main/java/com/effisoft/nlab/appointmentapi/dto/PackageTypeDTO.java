@@ -32,5 +32,5 @@ public class PackageTypeDTO {
     @Digits(integer = 1, fraction = 2, message = "Nutritionist rate must have at most 1 digit and 2 decimal places")
     private BigDecimal nutritionistRate;
 
-    private boolean isActive;
+    private boolean active;
 }

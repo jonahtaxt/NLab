@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.Valid;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,6 +26,7 @@ public class PackageTypeService {
         try {
             PackageType packageType = new PackageType();
             updatePackageTypeFromDTO(packageType, dto);
+            packageType.setCreatedAt(LocalDateTime.now());
             packageType.setActive(true);
             return packageTypeRepository.save(packageType);
         } catch (DataIntegrityViolationException e) {
@@ -37,6 +40,11 @@ public class PackageTypeService {
     }
 
     @Transactional(readOnly = true)
+    public List<PackageType> getAllPackageTypes() {
+        return packageTypeRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
     public PackageType getPackageTypeById(Integer id) {
         return packageTypeRepository.findById(id)
                 .orElseThrow(() -> new PackageTypeServiceException("Package type not found with id: " + id));
@@ -46,6 +54,7 @@ public class PackageTypeService {
     public PackageType updatePackageType(Integer id, @Valid PackageTypeDTO dto) {
         try {
             PackageType existingPackageType = getPackageTypeById(id);
+            existingPackageType.setUpdatedAt(LocalDateTime.now());
             updatePackageTypeFromDTO(existingPackageType, dto);
             return packageTypeRepository.save(existingPackageType);
         } catch (DataIntegrityViolationException e) {

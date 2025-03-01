@@ -6,6 +6,8 @@ import com.effisoft.nlab.appointmentapi.exception.PatientServiceException;
 import com.effisoft.nlab.appointmentapi.repository.PatientRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.cglib.core.Local;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,6 +89,7 @@ public class PatientService {
                 }
             }
 
+            existingPatient.setUpdatedAt(LocalDateTime.now());
             updatePatientFromDTO(existingPatient, dto);
             return patientRepository.save(existingPatient);
         } catch (DataIntegrityViolationException e) {

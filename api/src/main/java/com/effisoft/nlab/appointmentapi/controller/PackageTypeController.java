@@ -25,11 +25,18 @@ public class PackageTypeController {
         return new ResponseEntity<>(createdPackageType, HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping("/active")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<List<PackageType>> getAllActivePackageTypes() {
         List<PackageType> activePackageTypes = packageTypeService.getAllActivePackageTypes();
         return ResponseEntity.ok(activePackageTypes);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PackageType>> getAllPackageTypes() {
+        List<PackageType> packageTypes = packageTypeService.getAllPackageTypes();
+        return ResponseEntity.ok(packageTypes);
     }
 
     @GetMapping("/{id}")

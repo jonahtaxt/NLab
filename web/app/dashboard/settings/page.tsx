@@ -1,14 +1,16 @@
 'use client';
 
-import { fetchAllCardPaymentTypes, fetchAllPaymentMethods } from "@/app/lib/data.settings";
-import { CardPaymentType, PaymentMethod } from "@/app/lib/definitions";
+import { fetchAllCardPaymentTypes, fetchAllPackageTypes, fetchAllPaymentMethods } from "@/app/lib/data.settings";
+import { CardPaymentType, PackageType, PaymentMethod } from "@/app/lib/definitions";
 import CardPaymentTypeTable from "@/app/ui/settings/card-payment-type-table";
+import PackageTypeTable from "@/app/ui/settings/package-type-table";
 import PaymentMethodTable from "@/app/ui/settings/payment-method-table";
 import { useEffect, useState } from "react";
 
 export default function Page() {
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [cardPaymentTypes, setCardPaymentTypes] = useState<CardPaymentType[]>([]);
+    const [packageTypes, setPackageTypes] = useState<PackageType[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -32,8 +34,19 @@ export default function Page() {
             }
         }
 
+        async function loadPackageTypes() {
+            try {
+                const data = await fetchAllPackageTypes();
+                setPackageTypes(data);
+            } catch (err) {
+                console.error('Failed to load package types:', err);
+                setError('Error al cargar los tipos de paquetes. Por favor, inténtalo de nuevo más tarde.');
+            }
+        }
+
         loadPaymentMethods();
         loadCardPaymentTypes();
+        loadPackageTypes();
     }, []);
 
     if (error) {
@@ -42,6 +55,7 @@ export default function Page() {
     
     return (
         <main>
+            <PackageTypeTable packageTypes={packageTypes} />
             <div className="flex flex-col md:flex-row md:gap-8">
                 <div className="w-full md:w-1/2 mb-6 md:mb-0">
                     <PaymentMethodTable paymentMethods={paymentMethods} />

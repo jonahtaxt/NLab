@@ -1,0 +1,286 @@
+'use client';
+
+import { useState } from 'react';
+import { DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PackageType, PackageTypeDTO } from '@/app/lib/definitions';
+import { insertPatient, updatePatient } from '@/app/lib/data.patient';
+import { Loader2 } from 'lucide-react';
+import { showToast } from '@/lib/toaster-util';
+import { insertPackageType, updatePackageType } from '@/app/lib/data.settings';
+
+interface PacakgeTypeFormProps {
+    packageType?: PackageType | null;
+    onClose: () => void;
+    onSuccess?: () => void;
+    onSubmitStart?: () => void;
+    onSubmitEnd?: () => void;
+    isSubmitting?: boolean;
+}
+
+const PackageTypeForm = ({
+    packageType,
+    onClose,
+    onSuccess,
+    onSubmitStart,
+    onSubmitEnd,
+    isSubmitting = false
+}: PacakgeTypeFormProps) => {
+    const [formData, setFormData] = useState({
+        name: packageType?.name || '',
+        description: packageType?.description || '',
+        numberOfAppointments: packageType?.numberOfAppointments || '',
+        isBundle: packageType?.isBundle ?? false,
+        price: packageType?.price ?? '',
+        nutritionistRate: packageType?.nutritionistRate ?? '',
+        active: packageType?.active ?? true,
+    });
+
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const validateForm = (): boolean => {
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.name.trim()) {
+            newErrors.name = 'El nombre es requerido';
+        }
+
+        if (!formData.description.trim()) {
+            newErrors.description = 'La descripción es requerida';
+        }
+
+        if (!formData.numberOfAppointments) {
+            newErrors.numberOfAppointments = 'El número de citas es requerido';
+        } else if (!/^\d+$/.test(formData.numberOfAppointments.toString())) {
+            newErrors.numberOfAppointments = 'El número de citas debe ser un número entero';
+        } else if (parseInt(formData.numberOfAppointments.toString()) <= 0) {
+            newErrors.numberOfAppointments = 'El número de citas debe ser mayor a 0';
+        }
+
+        if (!formData.price) {
+            newErrors.price = 'El precio es requerido';
+        } else if (!/^\d+(\.\d{1,2})?$/.test(formData.price.toString())) {
+            newErrors.price = 'El precio debe ser un número con máximo 2 decimales';
+        } else if (parseFloat(formData.price.toString()) <= 0) {
+            newErrors.price = 'El precio debe ser mayor a 0';
+        }
+
+        if (!formData.nutritionistRate) {
+            newErrors.nutritionistRate = 'La tarifa de nutricionista es requerida';
+        } else if (!/^\d+(\.\d{1,2})?$/.test(formData.nutritionistRate.toString())) {
+            newErrors.nutritionistRate = 'La tarifa de nutricionista debe ser un número con máximo 2 decimales';
+        } else if (parseFloat(formData.nutritionistRate.toString()) <= 0) {
+            newErrors.nutritionistRate = 'La tarifa de nutricionista debe ser mayor a 0';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            // Signal that submission is starting
+            if (onSubmitStart) {
+                onSubmitStart();
+            }
+
+            const packageTypeDTO: PackageTypeDTO = {
+                id: packageType?.id || 0,
+                name: formData.name,
+                description: formData.description,
+                numberOfAppointments: parseInt(formData.numberOfAppointments.toString()),
+                isBundle: formData.isBundle,
+                price: formData.price,
+                nutritionistRate: formData.nutritionistRate,
+                active: formData.active
+            }
+
+            if (packageType) {
+                const updatedPatient = await updatePackageType(packageTypeDTO);
+            } else {
+                const newPatient = await insertPackageType(packageTypeDTO);
+            }
+
+            // Show success notification
+            showToast.success(packageType?.id ? 'Paciente actualizado correctamente' : 'Paciente creado correctamente');
+
+            // Call the success callback to trigger refresh in parent
+            if (onSuccess) {
+                onSuccess();
+            }
+
+            onClose();
+        } catch (error) {
+            console.error('Error saving package type:', error);
+            showToast.error('Error al guardar el paquete');
+            setErrors({
+                submit: 'Ocurrió un error al guardar el paquete. Por favor, inténtalo de nuevo.'
+            });
+        } finally {
+            // Signal that submission has ended
+            if (onSubmitEnd) {
+                onSubmitEnd();
+            }
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            {errors.submit && (
+                <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                    {errors.submit}
+                </div>
+            )}
+
+            <div>
+                <Label htmlFor="name" className="flex justify-between">
+                    <span>Nombre</span>
+                    {errors.name && <span className="text-red-500 text-xs">{errors.name}</span>}
+                </Label>
+                <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={errors.name ? "border-red-500" : ""}
+                    disabled={isSubmitting}
+                />
+            </div>
+
+            <div>
+                <Label htmlFor="description" className="flex justify-between">
+                    <span>Descripci&oacute;n</span>
+                    {errors.description && <span className="text-red-500 text-xs">{errors.description}</span>}
+                </Label>
+                <Input
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    className={errors.description ? "border-red-500" : ""}
+                    disabled={isSubmitting}
+                />
+            </div>
+
+            <div>
+                <Label htmlFor="numberOfAppointments" className="flex justify-between">
+                    <span>Total de Citas</span>
+                    {errors.numberOfAppointments && <span className="text-red-500 text-xs">{errors.numberOfAppointments}</span>}
+                </Label>
+                <Input
+                    id="numberOfAppointments"
+                    name="numberOfAppointments"
+                    type="numberOfAppointments"
+                    value={formData.numberOfAppointments}
+                    onChange={handleChange}
+                    className={errors.numberOfAppointments ? "border-red-500" : ""}
+                    disabled={isSubmitting}
+                />
+            </div>
+
+            <div className="flex items-center gap-2">
+                <input
+                    id="isBundle"
+                    name="isBundle"
+                    type="checkbox"
+                    checked={formData.isBundle}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                />
+                <Label htmlFor="isBundle">Paquete</Label>
+            </div>
+
+            <div>
+                <Label htmlFor="price" className="flex justify-between">
+                    <span>Precio</span>
+                    {errors.price && <span className="text-red-500 text-xs">{errors.price}</span>}
+                </Label>
+                <Input
+                    id="price"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
+                    className={errors.price ? "border-red-500" : ""}
+                    disabled={isSubmitting}
+                    maxLength={10}
+                />
+            </div>
+
+            <div>
+                <Label htmlFor="nutritionistRate" className="flex justify-between">
+                    <span>Teléfono</span>
+                    {errors.nutritionistRate && <span className="text-red-500 text-xs">{errors.nutritionistRate}</span>}
+                </Label>
+                <Input
+                    id="nutritionistRate"
+                    name="nutritionistRate"
+                    value={formData.nutritionistRate}
+                    onChange={handleChange}
+                    className={errors.nutritionistRate ? "border-red-500" : ""}
+                    disabled={isSubmitting}
+                    maxLength={10}
+                />
+            </div>
+
+            <div className="flex items-center gap-2">
+                <input
+                    id="active"
+                    name="active"
+                    type="checkbox"
+                    checked={formData.active}
+                    onChange={handleChange}
+                    disabled={isSubmitting}
+                />
+                <Label htmlFor="isActive">Activo</Label>
+            </div>
+
+            <DialogFooter>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={isSubmitting}
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="min-w-24"
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Guardando...
+                        </>
+                    ) : (
+                        'Guardar'
+                    )}
+                </Button>
+            </DialogFooter>
+        </form>
+    );
+};
+
+export default PackageTypeForm;

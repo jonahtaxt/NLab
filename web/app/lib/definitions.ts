@@ -60,3 +60,25 @@ export type CardPaymentType = {
   numberOfInstallments: number;
   active: boolean;
 }
+
+export type PackageType = {
+  id: number;
+  name: string;
+  description: string;
+  numberOfAppointments: number;
+  isBundle: boolean;
+  price: string;
+  nutritionistRate: string;
+  active: boolean;
+}
+
+export type PackageTypeDTO = {
+  id: number;
+  name: string;
+  description: string;
+  numberOfAppointments: number;
+  isBundle: boolean;
+  price: string;
+  nutritionistRate: string;
+  active: boolean;
+}
