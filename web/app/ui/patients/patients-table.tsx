@@ -1,47 +1,57 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Patient } from "@/app/lib/definitions";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Search, Plus, Pencil, Loader2, Trash } from 'lucide-react';
+import { Search, Plus, Pencil, ArrowUp, ArrowDown, Loader2, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PatientForm from '@/app/ui/patients/patient-form';
-import { fetchAllPatients } from '@/app/lib/data.patient';
-import { showToast } from '@/lib/toaster-util';
 import { authDelete } from '@/app/lib/auth';
+import { showToast } from '@/lib/toaster-util';
 
-const PatientTable = ({ patients }: { patients: Patient[] }) => {
+interface PatientTableProps {
+    patients: Patient[];
+    onSearch: (term: string) => void;
+    onSort: (column: string) => void;
+    sortBy: string;
+    sortDirection: string;
+    loading: boolean;
+    onRefresh?: () => void;
+}
+
+const PatientTable = ({
+    patients,
+    onSearch,
+    onSort,
+    sortBy,
+    sortDirection,
+    loading,
+    onRefresh
+}: PatientTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-    const [patientsList, setPatientsList] = useState<Patient[]>(patients);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [formSubmitting, setFormSubmitting] = useState(false);
     const [isDeactivating, setIsDeactivating] = useState(false);
 
-    // Update local state when props change
-    useEffect(() => {
-        setPatientsList(patients);
-    }, [patients]);
-  
-    // Refresh function with loading state
-    const refreshPatients = async () => {
-        setIsRefreshing(true);
-        try {
-            const refreshedPatients = await fetchAllPatients();
-            setPatientsList(refreshedPatients);
-            // Don't show a success toast when it's the initial load
-            if (isRefreshing) {
-                showToast.info('Lista de pacientes actualizada');
-            }
-        } catch (error) {
-            console.error('Failed to refresh patients:', error);
-            showToast.error('Error al cargar la lista de pacientes');
-        } finally {
-            setIsRefreshing(false);
+    const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleSearchSubmit = () => {
+        onSearch(searchTerm);
+    };
+
+    const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSearchSubmit();
         }
+    };
+
+    const handleSortClick = (column: string) => {
+        onSort(column);
     };
   
     const handleOpenDialog = (patient?: Patient) => {
@@ -55,21 +65,24 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
     };
 
     const deactivatePatient = async () => {
+        if (!selectedPatient) return;
+        
         try {
             setIsDeactivating(true);
             // Deactivate patient
-            await authDelete(`/api/patients/${selectedPatient?.id}`);
+            await authDelete(`/api/patients/${selectedPatient.id}`);
             // Show success toast
             showToast.success('Paciente desactivado');
             setDeactivateDialogOpen(false);
-            // Refresh patients
-            refreshPatients();
+            // Refresh data
+            if (onRefresh) {
+                onRefresh();
+            }
         } catch (error) {
             console.error('Failed to deactivate patient:', error);
             showToast.error('Error al desactivar paciente');
         } finally {
             setIsDeactivating(false);
-            refreshPatients();
         }
     };
 
@@ -80,14 +93,15 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
     const handleFormSubmitEnd = () => {
         setFormSubmitting(false);
     };
-  
-    const filteredPatients = patientsList.filter(patient => {
-        const searchString = searchTerm.toLowerCase();
-        const fullName = `${patient.firstName} ${patient.lastName}`.toLowerCase();
-        return fullName.includes(searchString) ||
-               patient.email.toLowerCase().includes(searchString) ||
-               patient.phone.includes(searchString);
-    });
+
+    // Helper function to render sort indicator
+    const getSortIndicator = (column: string) => {
+        if (sortBy !== column) return null;
+        
+        return sortDirection === 'ASC' 
+            ? <ArrowUp className="ml-1 h-4 w-4" />
+            : <ArrowDown className="ml-1 h-4 w-4" />;
+    };
   
     return (
         <>
@@ -96,7 +110,7 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
                     <div className="flex justify-between items-center">
                         <CardTitle className="flex items-center gap-2 bg-nl text-nlab-black">
                             Pacientes
-                            {isRefreshing && <Loader2 className="animate-spin h-4 w-4" />}
+                            {loading && <Loader2 className="animate-spin h-4 w-4" />}
                         </CardTitle>
                         <div className="flex gap-4 items-center">
                             <div className="relative">
@@ -105,9 +119,18 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
                                     type="text"
                                     placeholder="Buscar pacientes..."
                                     value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onChange={handleSearchInput}
+                                    onKeyDown={handleSearchKeyDown}
                                     className="pl-8 pr-4 py-2 border rounded-md w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={handleSearchSubmit}
+                                    className="absolute right-1 top-1"
+                                >
+                                    Buscar
+                                </Button>
                             </div>
                             <Button onClick={() => handleOpenDialog()} className="flex items-center gap-2">
                                 <Plus className="w-4 h-4" /> Agregar
@@ -120,28 +143,56 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b">
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Nombre</th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Correo</th>
+                                    <th 
+                                        className="px-4 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer"
+                                        onClick={() => handleSortClick('firstName')}
+                                    >
+                                        <div className="flex items-center">
+                                            Nombre
+                                            {getSortIndicator('firstName')}
+                                        </div>
+                                    </th>
+                                    <th 
+                                        className="px-4 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer"
+                                        onClick={() => handleSortClick('lastName')}
+                                    >
+                                        <div className="flex items-center">
+                                            Apellido
+                                            {getSortIndicator('lastName')}
+                                        </div>
+                                    </th>
+                                    <th 
+                                        className="px-4 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer"
+                                        onClick={() => handleSortClick('email')}
+                                    >
+                                        <div className="flex items-center">
+                                            Correo
+                                            {getSortIndicator('email')}
+                                        </div>
+                                    </th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Teléfono</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Estatus</th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {isRefreshing && filteredPatients.length === 0 ? (
+                                {loading && patients.length === 0 ? (
                                     <tr>
-                                        <td className="px-4 py-8 text-center text-gray-500" colSpan={5}>
+                                        <td className="px-4 py-8 text-center text-gray-500" colSpan={6}>
                                             <div className="flex justify-center items-center">
                                                 <Loader2 className="animate-spin h-5 w-5 mr-2" />
                                                 Cargando pacientes...
                                             </div>
                                         </td>
                                     </tr>
-                                ) : filteredPatients.length > 0 ? (
-                                    filteredPatients.map((patient) => (
+                                ) : patients.length > 0 ? (
+                                    patients.map((patient) => (
                                         <tr key={patient.id} className="border-b hover:bg-gray-50">
                                             <td className="px-4 py-3 text-sm">
-                                                {patient.firstName} {patient.lastName}
+                                                {patient.firstName}
+                                            </td>
+                                            <td className="px-4 py-3 text-sm">
+                                                {patient.lastName}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
                                                 {patient.email}
@@ -170,7 +221,7 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td className="px-4 py-8 text-center text-gray-500" colSpan={5}>
+                                        <td className="px-4 py-8 text-center text-gray-500" colSpan={6}>
                                             No se han encontrado pacientes con tu búsqueda
                                         </td>
                                     </tr>
@@ -189,7 +240,7 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
                     <PatientForm 
                         patient={selectedPatient} 
                         onClose={() => setDialogOpen(false)} 
-                        onSuccess={refreshPatients}
+                        onSuccess={onRefresh}
                         onSubmitStart={handleFormSubmitStart}
                         onSubmitEnd={handleFormSubmitEnd}
                         isSubmitting={formSubmitting}
@@ -204,20 +255,28 @@ const PatientTable = ({ patients }: { patients: Patient[] }) => {
                     </DialogHeader>
                     <div className="p-4">
                         <p>¿Estás seguro que deseas desactivar a este paciente?</p>
+                        <p className="text-sm text-gray-500 mt-2">
+                            Nombre: {selectedPatient?.firstName} {selectedPatient?.lastName}
+                        </p>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeactivateDialogOpen(false)}>Cancelar</Button>
-                        <Button type="button"
+                        <Button variant="outline" onClick={() => setDeactivateDialogOpen(false)} disabled={isDeactivating}>
+                            Cancelar
+                        </Button>
+                        <Button 
                             variant="destructive"
-                            onClick={() => deactivatePatient()}>
-                                {isDeactivating ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Desactivando...
-                                    </>
-                                ) : (
-                                    'Desactivar'
-                                )}</Button>
+                            onClick={deactivatePatient}
+                            disabled={isDeactivating}
+                        >
+                            {isDeactivating ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Desactivando...
+                                </>
+                            ) : (
+                                'Desactivar'
+                            )}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

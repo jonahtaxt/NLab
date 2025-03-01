@@ -3,11 +3,15 @@ package com.effisoft.nlab.appointmentapi.service;
 import com.effisoft.nlab.appointmentapi.dto.PatientDTO;
 import com.effisoft.nlab.appointmentapi.entity.Patient;
 import com.effisoft.nlab.appointmentapi.exception.PatientServiceException;
+import com.effisoft.nlab.appointmentapi.mapper.PatientMapper;
 import com.effisoft.nlab.appointmentapi.repository.PatientRepository;
 import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository patientRepository;
+    private final PatientMapper patientMapper;
 
     @Transactional
     public Patient createPatient(@Valid PatientDTO dto) {
@@ -94,6 +99,12 @@ public class PatientService {
                     patient.setActive(false);
                     return patientRepository.save(patient);
                 }, PatientServiceException::new, "Deactivate Patient");
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PatientDTO> getPatients(Pageable pageable, String searchTerm, Boolean active) {
+        Page<Patient> patientsPage = patientRepository.findPatients(searchTerm, active, pageable);
+        return patientsPage.map(patientMapper::toDto);
     }
 
     private void updatePatientFromDTO(Patient patient, PatientDTO dto) {

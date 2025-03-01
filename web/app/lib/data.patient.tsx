@@ -1,14 +1,31 @@
-import { authDelete, authGet, authPost, authPut } from "./auth";
-import { Patient, PatientDTO } from "./definitions";
+import { authDelete, authGet, authPost, authPut } from "@/app/lib/auth";
+import { PaginatedResponse, Patient, PatientDTO } from "@/app/lib/definitions";
 
-export async function fetchAllPatients(): Promise<Patient[]> {
-    try {
-      return await authGet<Patient[]>('/api/patients');
-    } catch (err) {
+export async function fetchPaginatedPatients(
+  page: number = 0,
+  size: number = 10,
+  sortBy: string = 'lastName',
+  sortDirection: string = 'ASC',
+  searchTerm?: string,
+  active?: boolean
+): Promise<PaginatedResponse<Patient>> {
+  try {
+      let url = `/api/patients?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`;
+      
+      if (searchTerm) {
+          url += `&searchTerm=${encodeURIComponent(searchTerm)}`;
+      }
+      
+      if (active !== undefined) {
+          url += `&active=${active}`;
+      }
+      
+      return await authGet<PaginatedResponse<Patient>>(url);
+  } catch (err) {
       console.error('API error:', err);
       throw new Error('Failed to fetch patient data');
-    }
   }
+}
 
 export async function insertPatient(patient: PatientDTO): Promise<Patient> {
     try {
