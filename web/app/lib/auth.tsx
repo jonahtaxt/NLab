@@ -229,3 +229,63 @@ export async function authDelete(endpoint: string, options: RequestInit = {}): P
     throw new Error(`API error: ${response.status} ${response.statusText}`);
   }
 }
+
+// Add these functions to web/app/lib/auth.tsx
+
+/**
+ * Decodes a JWT token and returns the payload
+ * @param token JWT token string
+ * @returns Decoded token payload or null if invalid
+ */
+export function decodeToken(token: string | null): any {
+  if (!token) return null;
+  
+  try {
+    // JWT tokens consist of three parts: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.error('Invalid token format');
+      return null;
+    }
+    
+    // Get the payload part (second part)
+    const base64Url = parts[1];
+    
+    // Convert base64url to base64
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Decode base64
+    const rawPayload = atob(base64);
+    
+    // Parse JSON
+    return JSON.parse(rawPayload);
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+}
+
+/**
+ * Extracts user roles from the current access token
+ * @returns Array of user role strings
+ */
+export function getUserRoles(): string[] {
+  const token = getAccessToken();
+  const decoded = decodeToken(token);
+  
+  if (!decoded || !decoded.realm_access || !decoded.realm_access.roles) {
+    return [];
+  }
+  
+  return decoded.realm_access.roles;
+}
+
+/**
+ * Checks if the current user has a specific role
+ * @param role Role to check
+ * @returns Boolean indicating whether user has the role
+ */
+export function hasRole(role: string): boolean {
+  const roles = getUserRoles();
+  return roles.includes(role);
+}
