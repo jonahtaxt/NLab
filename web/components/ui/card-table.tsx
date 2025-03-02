@@ -1,3 +1,4 @@
+// components/ui/card-table.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
@@ -40,7 +41,7 @@ const CardTable = ({
         return (
             <tr>
                 <td colSpan={headers.length} className="px-4 py-8 text-center text-gray-500">
-                    No hay datos disponibles ...
+                    No hay datos disponibles
                 </td>
             </tr>
         );
@@ -62,6 +63,8 @@ const CardTable = ({
             </td>
         </tr>
     );
+
+    const rows = loadRows();
 
     return (
         <Card className="w-full h-full">
@@ -91,7 +94,7 @@ const CardTable = ({
                         <tbody>
                             {error ? renderErrorState() :
                                 isLoading ? renderSkeletonRows() :
-                                    loadRows() || renderEmptyState()}
+                                    rows || renderEmptyState()}
                         </tbody>
                     </table>
                 </div>

@@ -65,7 +65,7 @@ const PaymentMethodTable = () => {
             loadRows={renderRows}
             isLoading={isLoading}
             error={error}
-            onRetry={fetchAllPaymentMethods}
+            onRetry={refresh}
             emptyState={emptyState}
         />
     );
