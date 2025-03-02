@@ -7,33 +7,33 @@ import { CheckCircle, Pencil, Plus, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import PackageTypeForm from "@/app/ui/settings/package-type-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { showToast } from "@/lib/toaster-util";
 import { fetchAllPackageTypes } from "@/app/lib/data.settings";
+import CardLoader from "@/components/ui/card-loader";
+import CardErrorRetry from "@/components/ui/card-error-retry";
 
-const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) => {
-    const[packageTypesList, setPackageTypesList] = useState<PackageType[]>([]);
+const PackageTypeTable = () => {
+    const [packageTypes, setPackageTypes] = useState<PackageType[]>([]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedPackageType, setSelectedPackageType] = useState<PackageType | null>(null);
     const [formSubmitting, setFormSubmitting] = useState(false);
-    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setPackageTypesList(packageTypes);
+        loadPackageTypes();
     }, [packageTypes]);
 
-    const refreshPackageTypes = async () => {
-        setIsRefreshing(true);
+    const loadPackageTypes = async () => {
         try {
-            const refreshedPackageTypes = await fetchAllPackageTypes();
-            setPackageTypesList(refreshedPackageTypes);
-            if (isRefreshing) {
-                showToast.info('Lista de Paquetes actualizada');
-            }
+            setLoading(true);
+            const data = await fetchAllPackageTypes();
+            setPackageTypes(data);
+            setError(null);
         } catch (err) {
-            console.error('Failed to load package types:', err);
-            showToast.error('Error al cargar los paquetes. Por favor, inténtalo de nuevo más tarde.');
+            console.error("Failed to load package types:", err);
+            setError("Error al cargar los paquetes. Por favor intenta más tarde.");
         } finally {
-            setIsRefreshing(false);
+            setLoading(false);
         }
     };
 
@@ -49,6 +49,18 @@ const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) =>
     const handleFormSubmitEnd = () => {
         setFormSubmitting(false);
     };
+
+    if (loading) {
+        return (
+            <CardLoader />
+        );
+    }
+
+    if (error) {
+        return (
+            <CardErrorRetry error={error} retry={loadPackageTypes} />
+        );
+    }
 
     return (
         <>
@@ -81,8 +93,8 @@ const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) =>
                                 </tr>
                             </thead>
                             <tbody>
-                                {packageTypesList.length > 0 ? (
-                                    packageTypesList.map((packageType) => (
+                                {packageTypes.length > 0 ? (
+                                    packageTypes.map((packageType) => (
                                         <tr key={packageType.id} className="border-b hover:bg-gray-50">
                                             <td className="px-4 py-3 text-sm">
                                                 {packageType.name}
@@ -94,9 +106,9 @@ const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) =>
                                                 {packageType.numberOfAppointments}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
-                                            <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
-                                                    {packageType.bundle ? 
-                                                        <CheckCircle className="w-4 h-4 text-green-600" /> : 
+                                                <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
+                                                    {packageType.bundle ?
+                                                        <CheckCircle className="w-4 h-4 text-green-600" /> :
                                                         <XCircle className="w-4 h-4 text-red-600" />
                                                     }
                                                 </span>
@@ -108,10 +120,9 @@ const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) =>
                                                 {packageType.nutritionistRate}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-600">
-                                                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                                    packageType.active
-                                                        ? 'bg-green-100 text-green-700' 
-                                                        : 'bg-gray-100 text-gray-700'
+                                                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${packageType.active
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-gray-100 text-gray-700'
                                                     }`}>
                                                     {packageType.active ? 'Activo' : 'Inactivo'}
                                                 </span>
@@ -138,10 +149,10 @@ const PackageTypeTable = ({ packageTypes } : { packageTypes: PackageType[] }) =>
                     <DialogHeader>
                         <DialogTitle>{selectedPackageType ? 'Editar Paquete' : 'Agregar Paquete'}</DialogTitle>
                     </DialogHeader>
-                    <PackageTypeForm 
-                        packageType={selectedPackageType} 
-                        onClose={() => setDialogOpen(false)} 
-                        onSuccess={refreshPackageTypes}
+                    <PackageTypeForm
+                        packageType={selectedPackageType}
+                        onClose={() => setDialogOpen(false)}
+                        onSuccess={loadPackageTypes}
                         onSubmitStart={handleFormSubmitStart}
                         onSubmitEnd={handleFormSubmitEnd}
                         isSubmitting={formSubmitting}

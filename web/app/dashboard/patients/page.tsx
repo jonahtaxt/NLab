@@ -2,15 +2,29 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { fetchPaginatedPatients } from '@/app/lib/data.patient';
-import PatientTable from '@/app/ui/patients/patients-table';
 import { Patient, PaginatedResponse } from '@/app/lib/definitions';
-import { Pagination } from '@/app/ui/pagination';
+import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
+
+const PatientTable = dynamic(() => import('@/app/ui/patients/patients-table'), {
+    loading: () =>
+        <div className="flex justify-center items-center h-64">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Cargando...
+        </div>
+});
+
+const Pagination = dynamic(() => import('@/app/ui/pagination').then(mod => ({
+    default: mod.Pagination
+})), {
+    ssr: true
+});
 
 export default function Page() {
     const [patientsData, setPatientsData] = useState<PaginatedResponse<Patient> | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
@@ -23,10 +37,10 @@ export default function Page() {
         try {
             setLoading(true);
             const data = await fetchPaginatedPatients(
-                currentPage, 
-                pageSize, 
-                sortBy, 
-                sortDirection, 
+                currentPage,
+                pageSize,
+                sortBy,
+                sortDirection,
                 searchTerm
             );
             setPatientsData(data);
@@ -83,8 +97,8 @@ export default function Page() {
 
     return (
         <main>
-            <PatientTable 
-                patients={patientsData?.content || []} 
+            <PatientTable
+                patients={patientsData?.content || []}
                 onSearch={handleSearch}
                 onSort={handleSort}
                 sortBy={sortBy}
@@ -92,7 +106,7 @@ export default function Page() {
                 loading={loading}
                 onRefresh={refreshData}
             />
-            
+
             {patientsData && (
                 <Pagination
                     currentPage={patientsData.pageNumber}

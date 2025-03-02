@@ -83,7 +83,7 @@ const PackageTypeForm = ({
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
-        
+
         // Using a callback form of setState to ensure we're working with the latest state
         setFormData(prev => ({
             ...prev,

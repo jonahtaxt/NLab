@@ -1,72 +1,63 @@
 'use client';
-
 import { fetchAllCardPaymentTypes, fetchAllPackageTypes, fetchAllPaymentMethods } from "@/app/lib/data.settings";
 import { CardPaymentType, PackageType, PaymentMethod } from "@/app/lib/definitions";
-import CardPaymentTypeTable from "@/app/ui/settings/card-payment-type-table";
-import PackageTypeTable from "@/app/ui/settings/package-type-table";
-import PaymentMethodTable from "@/app/ui/settings/payment-method-table";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@radix-ui/react-tabs";
+import { Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
-export default function Page() {
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-    const [cardPaymentTypes, setCardPaymentTypes] = useState<CardPaymentType[]>([]);
-    const [packageTypes, setPackageTypes] = useState<PackageType[]>([]);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function loadPaymentMethods() {
-            try {
-                const data = await fetchAllPaymentMethods();
-                setPaymentMethods(data);
-            } catch (err) {
-                console.error('Failed to load payment methods:', err);
-                setError('Error al cargar los métodos de pago. Por favor, inténtalo de nuevo más tarde.');
-            }
-        }
-
-        async function loadCardPaymentTypes() {
-            try {
-                const data = await fetchAllCardPaymentTypes();
-                setCardPaymentTypes(data);
-            } catch (err) {
-                console.error('Failed to load card payment types:', err);
-                setError('Error al cargar los tipos de pago con tarjeta. Por favor, inténtalo de nuevo más tarde.');
-            }
-        }
-
-        async function loadPackageTypes() {
-            try {
-                const data = await fetchAllPackageTypes();
-                setPackageTypes(data);
-            } catch (err) {
-                console.error('Failed to load package types:', err);
-                setError('Error al cargar los tipos de paquetes. Por favor, inténtalo de nuevo más tarde.');
-            }
-        }
-
-        loadPaymentMethods();
-        loadCardPaymentTypes();
-        loadPackageTypes();
-    }, []);
-
-    if (error) {
-        return <div className="text-red-500 p-4">{error}</div>;
+const PackageTypeTable = dynamic(
+    () => import("@/app/ui/settings/package-type-table"),
+    {
+        loading: () => <div className="p-8">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando...
+        </div>
     }
-    
+);
+
+const PaymentMethodTable = dynamic(
+    () => import("@/app/ui/settings/payment-method-table"),
+    {
+        loading: () => <div className="p-8">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando...
+        </div>
+    }
+);
+
+const CardPaymentTypeTable = dynamic(
+    () => import("@/app/ui/settings/card-payment-type-table"),
+    {
+        loading: () => <div className="p-8">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando...
+        </div>
+    }
+);
+
+export default function Page() {
+    const [activeTab, setActiveTab] = useState("payments");
+
     return (
         <main className="space-y-8">
-            <div className="w-full">
-                <PackageTypeTable packageTypes={packageTypes} />
-            </div>
-            
-            <div className="flex flex-col md:flex-row gap-8">
-                <div className="w-full md:w-1/2">
-                    <PaymentMethodTable paymentMethods={paymentMethods} />
-                </div>
-                <div className="w-full md:w-1/2">
-                    <CardPaymentTypeTable cardPaymentTypes={cardPaymentTypes} />
-                </div>
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                    <TabsTrigger value="packages">Paquetes</TabsTrigger>
+                    <TabsTrigger value="payments">M&eacute;todos de Pago</TabsTrigger>
+                    <TabsTrigger value="cards">Pagos con Tarjeta</TabsTrigger>
+                </TabsList>
+
+                {/* <TabsContent value="packages">
+                    {activeTab === "packages" && <PackageTypeTable />}
+                </TabsContent> */}
+
+                <TabsContent value="payments">
+                    {activeTab === "payments" && <PaymentMethodTable />}
+                </TabsContent>
+
+                {/* <TabsContent value="cards">
+                    {activeTab === "cards" && <CardPaymentTypeTable />}
+                </TabsContent> */}
+            </Tabs>
         </main>
     )
 }
