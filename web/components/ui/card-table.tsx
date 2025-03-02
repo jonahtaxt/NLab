@@ -72,7 +72,7 @@ const CardTable = ({
                 <div className="flex justify-between items-center">
                     <CardTitle className="flex items-center gap-2 text-nlab-black">
                         {cardTitle}
-                        {isLoading && <Loader2 className="animate-spin h-4 w-4 ml-2" />}
+                        {isLoading && <Loader2 className="h-4 w-4 ml-2 loader-spin" />}
                     </CardTitle>
                 </div>
             </CardHeader>

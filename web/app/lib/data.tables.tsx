@@ -14,17 +14,14 @@ export function useTableData<T>({
     dependencies = []
 }: UseTableDataOptions<T>) {
     const [data, setData] = useState<T[]>(initialData || []);
-    const [isLoading, setIsLoading] = useState(!initialData);
+    const [isLoading, setIsLoading] = useState(true); // Always start with loading state
     const [error, setError] = useState<string | null>(null);
 
     const loadData = async () => {
-        if (initialData && !isLoading) return; // Don't reload if we have initial data
-
         setIsLoading(true);
         try {
             setError(null);
-            setIsLoading(true);
-            await new Promise((resolve) => setTimeout(resolve, 7500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
             const fetchedData = await fetchFunction();
             setData(fetchedData);
             setError(null);
@@ -45,7 +42,6 @@ export function useTableData<T>({
     }, dependencies);
 
     const refresh = () => {
-        setIsLoading(true);
         loadData();
     };
 
@@ -54,6 +50,6 @@ export function useTableData<T>({
         isLoading,
         error,
         refresh,
-        setData // Useful for updating the data after mutations
+        setData
     };
 }

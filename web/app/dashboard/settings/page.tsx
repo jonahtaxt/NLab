@@ -1,11 +1,9 @@
 'use client';
-import { fetchAllCardPaymentTypes, fetchAllPackageTypes, fetchAllPaymentMethods } from "@/app/lib/data.settings";
-import { CardPaymentType, PackageType, PaymentMethod } from "@/app/lib/definitions";
-import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tabs } from "@radix-ui/react-tabs";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const PackageTypeTable = dynamic(
     () => import("@/app/ui/settings/package-type-table"),
@@ -35,7 +33,7 @@ const CardPaymentTypeTable = dynamic(
 );
 
 export default function Page() {
-    const [activeTab, setActiveTab] = useState("payments");
+    const [activeTab, setActiveTab] = useState("packages");
 
     return (
         <main className="space-y-8">
@@ -46,17 +44,17 @@ export default function Page() {
                     <TabsTrigger value="cards">Pagos con Tarjeta</TabsTrigger>
                 </TabsList>
 
-                {/* <TabsContent value="packages">
+                <TabsContent value="packages">
                     {activeTab === "packages" && <PackageTypeTable />}
-                </TabsContent> */}
+                </TabsContent>
 
                 <TabsContent value="payments">
                     {activeTab === "payments" && <PaymentMethodTable />}
                 </TabsContent>
 
-                {/* <TabsContent value="cards">
+                <TabsContent value="cards">
                     {activeTab === "cards" && <CardPaymentTypeTable />}
-                </TabsContent> */}
+                </TabsContent>
             </Tabs>
         </main>
     )

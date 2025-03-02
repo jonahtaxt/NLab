@@ -7,19 +7,25 @@ import { Button } from "@/components/ui/button";
 import CardTable from "@/components/ui/card-table";
 import { showToast } from "@/lib/toaster-util";
 import { Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const PaymentMethodTable = () => {
+    // This state can be used to force a refresh when needed
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const {
         data: paymentMethods,
         isLoading,
         error,
         refresh
-    } = useTableData({
+    } = useTableData<PaymentMethod>({
         fetchFunction: fetchAllPaymentMethods,
-        initialData: [] as PaymentMethod[],
-        onError: () => showToast.error('Error al cargar los métodos de pago')
+        initialData: [],
+        onError: (err) => {
+            console.error("Error fetching payment methods:", err);
+            showToast.error('Error al cargar los métodos de pago');
+        },
+        dependencies: [refreshTrigger]
     });
 
     const handleEdit = (paymentMethod: PaymentMethod) => {
@@ -29,16 +35,20 @@ const PaymentMethodTable = () => {
 
     // Function to render table rows
     const renderRows = () => {
+        if (!paymentMethods || paymentMethods.length === 0) {
+            return null; // Let the CardTable component handle the empty state
+        }
+
         return paymentMethods.map((paymentMethod) => (
             <tr key={paymentMethod.id} className="border-b hover:bg-gray-50">
                 <td className="px-4 py-3 text-sm">
                     {paymentMethod.name}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-600">
-                    {paymentMethod.description}
+                    {paymentMethod.description || '-'}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-600">
-                    {paymentMethod.displayOrder}
+                    {paymentMethod.displayOrder || '-'}
                 </td>
                 <td className="px-4 py-3 text-sm">
                     <Button variant="ghost" onClick={() => handleEdit(paymentMethod)}>
