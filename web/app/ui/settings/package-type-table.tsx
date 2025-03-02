@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Pencil, Plus, XCircle } from "lucide-react";
 import { fetchAllPackageTypes } from "@/app/lib/data.settings";
 import { showToast } from "@/lib/toaster-util";
-import { useTableData } from "@/app/lib/data.tables";
+import { useTableData } from "@/app/hooks/useTableData";
 import CardTable from "@/components/ui/card-table";
 import { useState } from "react";
 
@@ -17,7 +17,7 @@ const PackageTypeTable = () => {
         isLoading,
         error,
         refresh
-    } = useTableData<PackageType>({
+    } = useTableData<PackageType[]>({
         fetchFunction: fetchAllPackageTypes,
         initialData: [],
         onError: (err) => {

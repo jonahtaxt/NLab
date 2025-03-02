@@ -1,15 +1,16 @@
-// components/ui/card-table.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import React from "react";
 
 interface CardTableProps {
     cardTitle: string;
-    headers: string[];
+    headers: React.ReactNode[];
     loadRows: () => React.ReactNode;
     isLoading?: boolean;
     emptyState?: React.ReactNode;
     error?: string | null;
     onRetry?: () => void;
+    customCardHeader?: React.ReactNode;
 }
 
 const CardTable = ({
@@ -19,7 +20,8 @@ const CardTable = ({
     isLoading = false,
     emptyState,
     error = null,
-    onRetry
+    onRetry,
+    customCardHeader
 }: CardTableProps) => {
     // Skeleton loader for table rows
     const renderSkeletonRows = () => {
@@ -72,8 +74,13 @@ const CardTable = ({
                 <div className="flex justify-between items-center">
                     <CardTitle className="flex items-center gap-2 text-nlab-black">
                         {cardTitle}
-                        {isLoading && <Loader2 className="h-4 w-4 ml-2 loader-spin" />}
+                        {isLoading && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
                     </CardTitle>
+                    {customCardHeader && (
+                        <div>
+                            {customCardHeader}
+                        </div>
+                    )}
                 </div>
             </CardHeader>
             <CardContent>

@@ -1,7 +1,7 @@
 'use client';
 
 import { fetchAllCardPaymentTypes } from "@/app/lib/data.settings";
-import { useTableData } from "@/app/lib/data.tables";
+import { useTableData } from "@/app/hooks/useTableData";
 import { CardPaymentType, PaymentMethod } from "@/app/lib/definitions";
 import { Button } from "@/components/ui/button";
 import CardTable from "@/components/ui/card-table";
@@ -17,7 +17,7 @@ const CardPaymentTypeTable = () => {
         isLoading,
         error,
         refresh
-    } = useTableData<CardPaymentType>({
+    } = useTableData<CardPaymentType[]>({
         fetchFunction: fetchAllCardPaymentTypes,
         initialData: [],
         onError: (err) => {

@@ -27,30 +27,77 @@ export async function fetchPaginatedPatients(
   }
 }
 
-export async function insertPatient(patient: PatientDTO): Promise<Patient> {
-    try {
-      return await authPost<Patient>('/api/patients', patient);
-    } catch (err) {
-      console.error('API error:', err);
-      throw new Error('Error al insertar paciente');
-    }
+export async function fetchPatientById(id: number): Promise<Patient> {
+  try {
+    return await authGet<Patient>(`/api/patients/${id}`);
+  } catch (err) {
+    console.error('API error:', err);
+    throw new Error(`Error al obtener el paciente con ID ${id}`);
   }
+}
+
+export async function insertPatient(patient: PatientDTO): Promise<Patient> {
+  try {
+    const result = await authPost<Patient>('/api/patients', patient);
+    return result;
+  } catch (err) {
+    console.error('API error:', err);
+    
+    // Check if the error has a specific message from the API
+    if (err instanceof Error) {
+      // Try to parse the error to see if it contains a JSON response
+      try {
+        const errorObj = JSON.parse(err.message);
+        if (errorObj.message) {
+          throw new Error(errorObj.message);
+        }
+      } catch {
+        // If we can't parse the error, just use the original message
+      }
+    }
+    
+    throw new Error('Error al insertar paciente');
+  }
+}
 
 export async function updatePatient(patient: PatientDTO): Promise<Patient> {
-    try {
-      return await authPut<Patient>('/api/patients/' + patient.id, patient);
-    } catch (err) {
-      console.error('API error:', err);
-      throw new Error('Error al actualizar paciente');
+  try {
+    const result = await authPut<Patient>(`/api/patients/${patient.id}`, patient);
+    return result;
+  } catch (err) {
+    console.error('API error:', err);
+    
+    // Check if the error has a specific message from the API
+    if (err instanceof Error) {
+      // Try to parse the error to see if it contains a JSON response
+      try {
+        const errorObj = JSON.parse(err.message);
+        if (errorObj.message) {
+          throw new Error(errorObj.message);
+        }
+      } catch {
+        // If we can't parse the error, just use the original message
+      }
     }
+    
+    throw new Error('Error al actualizar paciente');
   }
+}
 
 export async function deletePatient(id: number): Promise<void> {
   try {
-    return await authDelete('/api/patients/' + id);
-  }
-  catch (err) {
+    await authDelete(`/api/patients/${id}`);
+  } catch (err) {
     console.error('API error:', err);
     throw new Error('Error al eliminar paciente');
+  }
+}
+
+export async function fetchActivePatients(): Promise<Patient[]> {
+  try {
+    return await authGet<Patient[]>('/api/patients/active');
+  } catch (err) {
+    console.error('API error:', err);
+    throw new Error('Error al obtener pacientes activos');
   }
 }
