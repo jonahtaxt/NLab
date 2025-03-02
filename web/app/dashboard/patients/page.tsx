@@ -9,12 +9,7 @@ import { useTableData } from '@/app/hooks/useTableData';
 
 // Use dynamic import for the PatientTable component
 const PatientTable = dynamic(() => import('@/app/ui/patients/patients-table'), {
-    loading: () => (
-        <div className="flex justify-center items-center h-64">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Cargando...
-        </div>
-    )
+    loading: () => null
 });
 
 // Use dynamic import for the Pagination component
@@ -33,7 +28,6 @@ export default function Page() {
     const [sortDirection, setSortDirection] = useState('ASC');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    // Use the useTableData hook to fetch and manage patient data
     const {
         data: patientsData,
         isLoading,
@@ -57,9 +51,6 @@ export default function Page() {
             totalPages: 0,
             first: true, 
             last: true 
-        },
-        onError: (err) => {
-            console.error('Failed to load patients:', err);
         },
         dependencies: [currentPage, pageSize, sortBy, sortDirection, searchTerm, refreshTrigger]
     });
@@ -93,15 +84,6 @@ export default function Page() {
         setRefreshTrigger(prev => prev + 1);
     };
 
-    if (isLoading && !patientsData.content.length) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Cargando...
-            </div>
-        );
-    }
-
     if (error) {
         return <div className="text-red-500 p-4">{error}</div>;
     }
@@ -119,7 +101,7 @@ export default function Page() {
                 error={error}
             />
 
-            {patientsData && (
+            {patientsData.totalElements > 0 && (
                 <Pagination
                     currentPage={patientsData.pageNumber}
                     pageSize={patientsData.pageSize}

@@ -74,25 +74,23 @@ const CardTable = ({
                 <div className="flex justify-between items-center">
                     <CardTitle className="flex items-center gap-2 text-nlab-black">
                         {cardTitle}
-                        {isLoading && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+                        {isLoading && (
+                            <div className="flex items-center">
+                                <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                                <span className="text-sm ml-2 text-gray-500 font-normal">Cargando...</span>
+                            </div>
+                        )}
                     </CardTitle>
-                    {customCardHeader && (
-                        <div>
-                            {customCardHeader}
-                        </div>
-                    )}
+                    {customCardHeader && <div>{customCardHeader}</div>}
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b">
                                 {headers.map((header, index) => (
-                                    <th
-                                        key={`header-${index}`}
-                                        className="px-4 py-3 text-left text-sm font-medium text-gray-500"
-                                    >
+                                    <th key={`header-${index}`} className="px-4 py-3 text-left text-sm font-medium text-gray-500">
                                         {header}
                                     </th>
                                 ))}
@@ -100,8 +98,9 @@ const CardTable = ({
                         </thead>
                         <tbody>
                             {error ? renderErrorState() :
-                                isLoading ? renderSkeletonRows() :
-                                    rows || renderEmptyState()}
+                             isLoading ? renderSkeletonRows() :
+                             (!rows || (Array.isArray(rows) && rows.length === 0)) ? renderEmptyState() :
+                             rows}
                         </tbody>
                     </table>
                 </div>

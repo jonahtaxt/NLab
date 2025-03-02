@@ -64,7 +64,7 @@ const PatientTable = ({
 
     const deactivatePatient = async () => {
         if (!selectedPatient) return;
-        
+
         try {
             setIsDeactivating(true);
             // Deactivate patient
@@ -105,11 +105,12 @@ const PatientTable = ({
                     onKeyDown={handleSearchKeyDown}
                     className="pl-8 pr-4 py-2 border rounded-md w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={handleSearchSubmit}
                     className="absolute right-1 top-1"
+                    disabled={isLoading} // Disable button during loading
                 >
                     Buscar
                 </Button>
@@ -141,11 +142,10 @@ const PatientTable = ({
                     {patient.phone}
                 </td>
                 <td className="px-4 py-3 text-sm">
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        patient.active
-                            ? 'bg-green-100 text-green-700' 
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${patient.active
+                            ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-700'
-                    }`}>
+                        }`}>
                         {patient.active ? 'Activo' : 'Inactivo'}
                     </span>
                 </td>
@@ -182,14 +182,14 @@ const PatientTable = ({
     // Function to get sort indicator for column headers
     const getSortIndicator = (column: string) => {
         if (sortBy !== column) return null;
-        
-        return sortDirection === 'ASC' 
+
+        return sortDirection === 'ASC'
             ? <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 h-4 w-4">
-                <path d="m18 15-6-6-6 6"/>
-              </svg>
+                <path d="m18 15-6-6-6 6" />
+            </svg>
             : <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 h-4 w-4">
-                <path d="m6 9 6 6 6-6"/>
-              </svg>;
+                <path d="m6 9 6 6 6-6" />
+            </svg>;
     };
 
     // Create table headers with sort functionality
@@ -220,11 +220,11 @@ const PatientTable = ({
 
     return (
         <>
-            <CardTable 
+            <CardTable
                 cardTitle="Pacientes"
                 headers={headers.map(header => (
                     header.onClick ? (
-                        <div 
+                        <div
                             className="flex items-center cursor-pointer"
                             onClick={header.onClick}
                         >
@@ -240,15 +240,15 @@ const PatientTable = ({
                 error={error}
                 onRetry={onRefresh}
             />
-            
+
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{selectedPatient ? 'Editar Paciente' : 'Agregar Paciente'}</DialogTitle>
                     </DialogHeader>
-                    <PatientForm 
-                        patient={selectedPatient} 
-                        onClose={() => setDialogOpen(false)} 
+                    <PatientForm
+                        patient={selectedPatient}
+                        onClose={() => setDialogOpen(false)}
                         onSuccess={onRefresh}
                         onSubmitStart={handleFormSubmitStart}
                         onSubmitEnd={handleFormSubmitEnd}
@@ -269,14 +269,14 @@ const PatientTable = ({
                         </p>
                     </div>
                     <DialogFooter>
-                        <Button 
-                            variant="outline" 
-                            onClick={() => setDeactivateDialogOpen(false)} 
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeactivateDialogOpen(false)}
                             disabled={isDeactivating}
                         >
                             Cancelar
                         </Button>
-                        <Button 
+                        <Button
                             variant="destructive"
                             onClick={deactivatePatient}
                             disabled={isDeactivating}
@@ -296,5 +296,5 @@ const PatientTable = ({
         </>
     );
 };
-  
+
 export default PatientTable;
