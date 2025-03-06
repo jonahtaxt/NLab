@@ -1,10 +1,16 @@
 package com.effisoft.nlab.appointmentapi.controller;
 
 import com.effisoft.nlab.appointmentapi.dto.PackageTypeDTO;
+import com.effisoft.nlab.appointmentapi.dto.PageResponseDTO;
 import com.effisoft.nlab.appointmentapi.entity.PackageType;
 import com.effisoft.nlab.appointmentapi.service.PackageTypeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,11 +38,30 @@ public class PackageTypeController {
         return ResponseEntity.ok(activePackageTypes);
     }
 
-    @GetMapping
+    @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<PackageType>> getAllPackageTypes() {
-        List<PackageType> packageTypes = packageTypeService.getAllPackageTypes();
-        return ResponseEntity.ok(packageTypes);
+    public ResponseEntity<PageResponseDTO<PackageTypeDTO>> getAllPatients(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDirection,
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) Boolean active) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<PackageTypeDTO> packageTypes = packageTypeService.getPackageTypes(pageable, searchTerm, active);
+
+        PageResponseDTO<PackageTypeDTO> response = new PageResponseDTO<>(
+                packageTypes.getContent(),
+                packageTypes.getNumber(),
+                packageTypes.getSize(),
+                packageTypes.getTotalElements(),
+                packageTypes.getTotalPages(),
+                packageTypes.isFirst(),
+                packageTypes.isLast());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")

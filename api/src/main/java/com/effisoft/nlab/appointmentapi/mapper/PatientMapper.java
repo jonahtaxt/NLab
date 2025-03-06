@@ -2,30 +2,32 @@ package com.effisoft.nlab.appointmentapi.mapper;
 
 import com.effisoft.nlab.appointmentapi.dto.PatientDTO;
 import com.effisoft.nlab.appointmentapi.entity.Patient;
-import org.springframework.stereotype.Component;
 
-@Component
-public class PatientMapper {
-    
-    public PatientDTO toDto(Patient patient) {
-        PatientDTO dto = new PatientDTO();
-        dto.setId(patient.getId());
-        dto.setFirstName(patient.getFirstName());
-        dto.setLastName(patient.getLastName());
-        dto.setEmail(patient.getEmail());
-        dto.setPhone(patient.getPhone());
-        dto.setActive(patient.isActive());
-        return dto;
-    }
-    
-    public Patient toEntity(PatientDTO dto) {
-        Patient patient = new Patient();
-        patient.setId(dto.getId());
-        patient.setFirstName(dto.getFirstName());
-        patient.setLastName(dto.getLastName());
-        patient.setEmail(dto.getEmail());
-        patient.setPhone(dto.getPhone());
-        patient.setActive(dto.isActive());
-        return patient;
+import java.util.List;
+
+import org.mapstruct.*;
+
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+public interface PatientMapper {
+
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    Patient toEntity(PatientDTO dto);
+
+    PatientDTO toDto(Patient entity);
+
+    List<PatientDTO> toDtoList(List<Patient> entities);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updatePatientFromDTO(PatientDTO dto, @MappingTarget Patient entity);
+
+    @AfterMapping
+    default void setDefaults(@MappingTarget Patient patient) {
+        // Set default values or perform additional validations
+        if (patient.getEmail() != null) {
+            patient.setEmail(patient.getEmail().toLowerCase().trim());
+        }
     }
 }

@@ -1,5 +1,5 @@
-import { authGet, authPost, authPut } from "./auth";
-import { CardPaymentType, PackageType, PackageTypeDTO, PaymentMethod } from "./definitions";
+import { authGet } from "@/app/lib/auth";
+import { CardPaymentType, PaymentMethod } from "@/app/lib/definitions";
 
 export async function fetchAllPaymentMethods(): Promise<PaymentMethod[]> {
   try {
@@ -16,32 +16,5 @@ export async function fetchAllCardPaymentTypes(): Promise<CardPaymentType[]> {
   } catch (err) {
     console.error('API error:', err);
     throw new Error('Error al obtener Tipos de Pago con Tarjeta');
-  }
-}
-
-export async function fetchAllPackageTypes(): Promise<PackageType[]> {
-  try {
-    return await authGet<PackageType[]>('/api/package-types');
-  } catch (err) {
-    console.error('API error:', err);
-    throw new Error('Error al obtener Tipos de Paquete');
-  }
-}
-
-export async function insertPackageType(packageType: PackageTypeDTO): Promise<PackageTypeDTO> {
-  try {
-    return await authPost<PackageTypeDTO>('/api/package-types', packageType);
-  } catch (err) {
-    console.error('API error:', err);
-    throw new Error('Error al insertar paquete');
-  }
-}
-
-export async function updatePackageType(packageType: PackageTypeDTO): Promise<PackageTypeDTO> {
-  try {
-    return await authPut<PackageTypeDTO>('/api/package-types/' + packageType.id, packageType);
-  } catch (err) {
-    console.error('API error:', err);
-    throw new Error('Error al actualizar paciente');
   }
 }

@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 const PackageTypeTable = dynamic(
-    () => import("@/app/ui/settings/package-type-table"),
+    () => import("@/app/ui/packages/package-type-table"),
     {
         loading: () => <div className="p-8">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando...
@@ -33,20 +33,15 @@ const CardPaymentTypeTable = dynamic(
 );
 
 export default function Page() {
-    const [activeTab, setActiveTab] = useState("packages");
+    const [activeTab, setActiveTab] = useState("payments");
 
     return (
         <main className="space-y-8">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
-                    <TabsTrigger value="packages">Paquetes</TabsTrigger>
                     <TabsTrigger value="payments">M&eacute;todos de Pago</TabsTrigger>
                     <TabsTrigger value="cards">Pagos con Tarjeta</TabsTrigger>
                 </TabsList>
-
-                <TabsContent value="packages">
-                    {activeTab === "packages" && <PackageTypeTable />}
-                </TabsContent>
 
                 <TabsContent value="payments">
                     {activeTab === "payments" && <PaymentMethodTable />}

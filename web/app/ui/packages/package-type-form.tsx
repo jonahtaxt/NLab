@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { PackageType, PackageTypeDTO } from '@/app/lib/definitions';
 import { Loader2 } from 'lucide-react';
 import { showToast } from '@/lib/toaster-util';
-import { insertPackageType, updatePackageType } from '@/app/lib/data.settings';
+import { insertPackageType, updatePackageType } from '@/app/lib/data.package-type';
 
 interface PackageTypeFormProps {
     packageType?: PackageType | null;

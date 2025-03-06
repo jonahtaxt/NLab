@@ -38,7 +38,7 @@ public class PatientService {
                     }
 
                     // Create and sanitize new patient
-                    Patient patient = new Patient();
+                    Patient patient = patientMapper.toEntity(dto);
                     updatePatientFromDTO(patient, dto);
                     patient.setCreatedAt(LocalDateTime.now());
                     patient.setActive(true);
@@ -84,8 +84,8 @@ public class PatientService {
                         }
                     }
 
+                    patientMapper.updatePatientFromDTO(dto, existingPatient);
                     existingPatient.setUpdatedAt(LocalDateTime.now());
-                    updatePatientFromDTO(existingPatient, dto);
                     return patientRepository.save(existingPatient);
                 }, PatientServiceException::new, "Update Patient");
     }
@@ -103,8 +103,8 @@ public class PatientService {
 
     @Transactional(readOnly = true)
     public Page<PatientDTO> getPatients(Pageable pageable, String searchTerm, Boolean active) {
-        Page<Patient> patientsPage = patientRepository.findPatients(searchTerm, active, pageable);
-        return patientsPage.map(patientMapper::toDto);
+        return patientRepository.findPatients(searchTerm, active, pageable)
+                .map(patientMapper::toDto);
     }
 
     private void updatePatientFromDTO(Patient patient, PatientDTO dto) {
