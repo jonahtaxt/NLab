@@ -9,6 +9,15 @@ export type Nutritionist = {
   active: boolean;
 }
 
+export type NutritionistDTO = {
+  id: number | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  active: boolean;
+}
+
 export type Patient = {
   id: number;
   firstName: string;
@@ -21,7 +30,7 @@ export type Patient = {
 }
 
 export type PatientDTO = {
-  id: number;
+  id: number | null;
   firstName: string;
   lastName: string;
   email: string;

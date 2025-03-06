@@ -3,15 +3,18 @@ package com.effisoft.nlab.appointmentapi.service;
 import com.effisoft.nlab.appointmentapi.dto.NutritionistDTO;
 import com.effisoft.nlab.appointmentapi.entity.Nutritionist;
 import com.effisoft.nlab.appointmentapi.exception.NutritionistServiceException;
+import com.effisoft.nlab.appointmentapi.mapper.NutritionistMapper;
 import com.effisoft.nlab.appointmentapi.repository.NutritionistRepository;
 import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NutritionistService {
     private final NutritionistRepository nutritionistRepository;
+    private final NutritionistMapper nutritionistMapper;
 
     @Transactional
     public Nutritionist createNutritionist(@Valid NutritionistDTO dto) {
@@ -33,8 +37,7 @@ public class NutritionistService {
                     }
 
                     // Create and sanitize new nutritionist
-                    Nutritionist nutritionist = new Nutritionist();
-                    updateNutritionistFromDTO(nutritionist, dto);
+                    Nutritionist nutritionist = nutritionistMapper.toEntity(dto);
                     nutritionist.setCreatedAt(LocalDateTime.now());
                     nutritionist.setActive(true);
 
@@ -59,7 +62,7 @@ public class NutritionistService {
                         }
                     }
 
-                    updateNutritionistFromDTO(existingNutritionist, dto);
+                    nutritionistMapper.updateNutritionistFromDTO(dto, existingNutritionist);
                     return nutritionistRepository.save(existingNutritionist);
                 },
                 NutritionistServiceException::new,
@@ -74,6 +77,12 @@ public class NutritionistService {
                 "Get All Active Nutritionists");
     }
 
+    @Transactional(readOnly = true)
+    public Page<NutritionistDTO> getNutritionists(Pageable pageable, String searchTerm, Boolean active) {
+        return nutritionistRepository.findNutritionists(searchTerm, active, pageable)
+                .map(nutritionistMapper::toDto);
+    }
+
     @Transactional
     public Nutritionist deactivateNutritionist(Integer id) {
         return ServiceExceptionHandler.executeWithExceptionHandling(
@@ -83,16 +92,10 @@ public class NutritionistService {
                                     () -> new NutritionistServiceException("Nutritionist not found with id: " + id));
 
                     nutritionist.setActive(false);
+                    nutritionist.setUpdatedAt(LocalDateTime.now());
                     return nutritionistRepository.save(nutritionist);
                 },
                 NutritionistServiceException::new,
                 "Deactivate Nutritionist");
-    }
-
-    private void updateNutritionistFromDTO(Nutritionist nutritionist, NutritionistDTO dto) {
-        nutritionist.setFirstName(HtmlUtils.htmlEscape(dto.getFirstName().trim()));
-        nutritionist.setLastName(HtmlUtils.htmlEscape(dto.getLastName().trim()));
-        nutritionist.setEmail(dto.getEmail().toLowerCase().trim());
-        nutritionist.setPhone(dto.getPhone() != null ? dto.getPhone().trim() : null);
     }
 }

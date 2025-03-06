@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +38,6 @@ public class PatientService {
 
                     // Create and sanitize new patient
                     Patient patient = patientMapper.toEntity(dto);
-                    updatePatientFromDTO(patient, dto);
                     patient.setCreatedAt(LocalDateTime.now());
                     patient.setActive(true);
 
@@ -105,14 +103,6 @@ public class PatientService {
     public Page<PatientDTO> getPatients(Pageable pageable, String searchTerm, Boolean active) {
         return patientRepository.findPatients(searchTerm, active, pageable)
                 .map(patientMapper::toDto);
-    }
-
-    private void updatePatientFromDTO(Patient patient, PatientDTO dto) {
-        patient.setFirstName(HtmlUtils.htmlEscape(dto.getFirstName().trim()));
-        patient.setLastName(HtmlUtils.htmlEscape(dto.getLastName().trim()));
-        patient.setEmail(dto.getEmail().toLowerCase().trim());
-        patient.setPhone(dto.getPhone() != null ? dto.getPhone().trim() : null);
-        patient.setActive(dto.isActive());
     }
 
     private Patient findById(Integer id) {

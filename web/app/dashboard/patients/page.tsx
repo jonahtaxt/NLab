@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { fetchPaginatedPatients } from '@/app/lib/data.patient';
 import { Patient, PaginatedResponse } from '@/app/lib/definitions';
 import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
 import { useTableData } from '@/app/hooks/useTableData';
 
 // Use dynamic import for the PatientTable component
@@ -43,14 +42,14 @@ export default function Page() {
                 searchTerm
             );
         },
-        initialData: { 
+        initialData: {
             content: [],
             pageNumber: 0,
             pageSize: 10,
             totalElements: 0,
             totalPages: 0,
-            first: true, 
-            last: true 
+            first: true,
+            last: true
         },
         dependencies: [currentPage, pageSize, sortBy, sortDirection, searchTerm, refreshTrigger]
     });
