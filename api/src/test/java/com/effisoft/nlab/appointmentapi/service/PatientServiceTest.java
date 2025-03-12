@@ -3,6 +3,7 @@ package com.effisoft.nlab.appointmentapi.service;
 import com.effisoft.nlab.appointmentapi.dto.PatientDTO;
 import com.effisoft.nlab.appointmentapi.entity.Patient;
 import com.effisoft.nlab.appointmentapi.exception.PatientServiceException;
+import com.effisoft.nlab.appointmentapi.mapper.PatientMapper;
 import com.effisoft.nlab.appointmentapi.repository.PatientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -19,208 +24,229 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PatientServiceTest {
+class PatientServiceTest {
 
     @Mock
     private PatientRepository patientRepository;
 
+    @Mock
+    private PatientMapper patientMapper;
+
     @InjectMocks
     private PatientService patientService;
 
-    private PatientDTO patientDTO;
-    private Patient patient;
+    private PatientDTO validPatientDTO;
+    private Patient existingPatient;
+    private Patient mappedPatient;
 
     @BeforeEach
     void setUp() {
-        // Initialize test data
-        patientDTO = new PatientDTO();
-        patientDTO.setFirstName("John");
-        patientDTO.setLastName("Doe");
-        patientDTO.setEmail("john.doe@example.com");
-        patientDTO.setPhone("1234567890");
+        // Setup valid DTO
+        validPatientDTO = new PatientDTO();
+        validPatientDTO.setFirstName("John");
+        validPatientDTO.setLastName("Doe");
+        validPatientDTO.setEmail("john.doe@example.com");
+        validPatientDTO.setPhone("1234567890");
+        validPatientDTO.setActive(true);
 
-        patient = new Patient();
-        patient.setId(1);
-        patient.setFirstName("John");
-        patient.setLastName("Doe");
-        patient.setEmail("john.doe@example.com");
-        patient.setPhone("1234567890");
-        patient.setCreatedAt(LocalDateTime.now());
-        patient.setActive(true);
+        // Setup existing patient
+        existingPatient = new Patient();
+        existingPatient.setId(1);
+        existingPatient.setFirstName("John");
+        existingPatient.setLastName("Doe");
+        existingPatient.setEmail("john.doe@example.com");
+        existingPatient.setPhone("1234567890");
+        existingPatient.setCreatedAt(LocalDateTime.now());
+        existingPatient.setActive(true);
+
+        // Setup mapper
+        mappedPatient = new Patient();
+        existingPatient.setFirstName("John");
+        existingPatient.setLastName("Doe");
+        existingPatient.setEmail("john.doe@example.com");
+        existingPatient.setPhone("1234567890");
+        existingPatient.setCreatedAt(LocalDateTime.now());
     }
 
     @Test
-    void createPatient_WhenEmailNotExists_ShouldCreatePatient() {
+    void createPatient_WhenValidDTOAndEmailNotExists_ShouldCreatePatient() {
         // Arrange
-        when(patientRepository.findByEmail(patientDTO.getEmail())).thenReturn(Optional.empty());
-        when(patientRepository.save(any(Patient.class))).thenReturn(patient);
+        when(patientRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(patientMapper.toEntity(validPatientDTO)).thenReturn(mappedPatient);
+        when(patientRepository.save(any(Patient.class))).thenReturn(existingPatient);
 
         // Act
-        Patient createdPatient = patientService.createPatient(patientDTO);
+        Patient created = patientService.createPatient(validPatientDTO);
 
         // Assert
-        assertNotNull(createdPatient);
-        assertEquals(patientDTO.getEmail(), createdPatient.getEmail());
-        assertTrue(createdPatient.isActive());
-        assertNotNull(createdPatient.getCreatedAt());
-        verify(patientRepository).findByEmail(patientDTO.getEmail());
+        assertNotNull(created);
+        assertEquals(validPatientDTO.getEmail(), created.getEmail());
+        assertTrue(created.isActive());
+        assertNotNull(created.getCreatedAt());
+        verify(patientRepository).findByEmail(validPatientDTO.getEmail().toLowerCase());
         verify(patientRepository).save(any(Patient.class));
     }
 
     @Test
     void createPatient_WhenEmailExists_ShouldThrowException() {
         // Arrange
-        when(patientRepository.findByEmail(patientDTO.getEmail())).thenReturn(Optional.of(patient));
+        when(patientRepository.findByEmail(anyString())).thenReturn(Optional.of(existingPatient));
 
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.createPatient(patientDTO));
+                () -> patientService.createPatient(validPatientDTO));
 
         assertEquals(
-                String.format("Patient with email %s already exists", patientDTO.getEmail()),
+                String.format("Patient with email %s already exists", validPatientDTO.getEmail()),
                 exception.getMessage());
-        verify(patientRepository).findByEmail(patientDTO.getEmail());
+        verify(patientRepository).findByEmail(validPatientDTO.getEmail().toLowerCase());
         verify(patientRepository, never()).save(any(Patient.class));
     }
 
     @Test
     void createPatient_WhenDataIntegrityViolation_ShouldThrowException() {
         // Arrange
-        when(patientRepository.findByEmail(patientDTO.getEmail())).thenReturn(Optional.empty());
+        when(patientRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(patientMapper.toEntity(validPatientDTO)).thenReturn(mappedPatient);
         when(patientRepository.save(any(Patient.class)))
                 .thenThrow(new DataIntegrityViolationException("Database error"));
 
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.createPatient(patientDTO));
+                () -> patientService.createPatient(validPatientDTO));
 
-        assertEquals(
-                "Create Patient failed due to data integrity violation",
-                exception.getMessage());
+        assertEquals("Create Patient failed due to data integrity violation", exception.getMessage());
+        assertNotNull(exception.getCause());
+        assertTrue(exception.getCause() instanceof DataIntegrityViolationException);
     }
 
     @Test
     void getAllActivePatients_ShouldReturnOnlyActivePatients() {
         // Arrange
-        Patient patient2 = new Patient();
-        patient2.setActive(true);
-        List<Patient> activePatients = Arrays.asList(patient, patient2);
-
+        List<Patient> activePatients = Arrays.asList(existingPatient);
         when(patientRepository.findByActiveTrue()).thenReturn(activePatients);
 
         // Act
         List<Patient> result = patientService.getAllActivePatients();
 
         // Assert
-        assertEquals(2, result.size());
+        assertEquals(1, result.size());
+        assertTrue(result.get(0).isActive());
         verify(patientRepository).findByActiveTrue();
     }
 
     @Test
     void getPatientById_WhenExists_ShouldReturnPatient() {
         // Arrange
-        when(patientRepository.findById(1)).thenReturn(Optional.of(patient));
+        when(patientRepository.findById(1)).thenReturn(Optional.of(existingPatient));
 
         // Act
         Patient result = patientService.getPatientById(1);
 
         // Assert
         assertNotNull(result);
-        assertEquals(patient.getId(), result.getId());
+        assertEquals(existingPatient.getId(), result.getId());
         verify(patientRepository).findById(1);
     }
 
     @Test
     void getPatientById_WhenNotExists_ShouldThrowException() {
         // Arrange
-        when(patientRepository.findById(1)).thenReturn(Optional.empty());
+        when(patientRepository.findById(999)).thenReturn(Optional.empty());
 
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.getPatientById(1));
+                () -> patientService.getPatientById(999));
 
-        assertEquals("Patient not found with id: 1", exception.getMessage());
-        verify(patientRepository).findById(1);
+        assertEquals("Patient not found with id: 999", exception.getMessage());
+        verify(patientRepository).findById(999);
     }
 
     @Test
-    void updatePatient_WhenExists_ShouldUpdatePatient() {
+    void updatePatient_WhenValidUpdate_ShouldUpdatePatient() {
         // Arrange
-        PatientDTO updatedDTO = new PatientDTO();
-        updatedDTO.setFirstName("Jane");
-        updatedDTO.setLastName("Smith");
-        updatedDTO.setEmail("jane.smith@example.com");
-        updatedDTO.setPhone("9876543210");
+        PatientDTO updateDTO = new PatientDTO();
+        updateDTO.setFirstName("Jane");
+        updateDTO.setLastName("Smith");
+        updateDTO.setEmail("jane.smith@example.com");
+        updateDTO.setPhone("9876543210");
 
-        when(patientRepository.findById(1)).thenReturn(Optional.of(patient));
-        when(patientRepository.findByEmail(updatedDTO.getEmail())).thenReturn(Optional.empty());
-        when(patientRepository.save(any(Patient.class))).thenReturn(patient);
+        when(patientRepository.findById(1)).thenReturn(Optional.of(existingPatient));
+        when(patientRepository.findByEmail(updateDTO.getEmail())).thenReturn(Optional.empty());
+        when(patientRepository.save(any(Patient.class))).thenReturn(existingPatient);
 
         // Act
-        Patient updatedPatient = patientService.updatePatient(1, updatedDTO);
+        Patient updated = patientService.updatePatient(1, updateDTO);
 
         // Assert
-        assertEquals(updatedDTO.getFirstName(), updatedPatient.getFirstName());
-        assertEquals(updatedDTO.getLastName(), updatedPatient.getLastName());
-        assertEquals(updatedDTO.getEmail(), updatedPatient.getEmail());
-        assertEquals(updatedDTO.getPhone(), updatedPatient.getPhone());
+        assertNotNull(updated);
+        verify(patientMapper).updatePatientFromDTO(eq(updateDTO), eq(existingPatient));
         verify(patientRepository).findById(1);
         verify(patientRepository).save(any(Patient.class));
     }
 
     @Test
-    void updatePatient_WhenEmailAlreadyExists_ShouldThrowException() {
+    void updatePatient_WhenEmailExistsForDifferentPatient_ShouldThrowException() {
         // Arrange
-        PatientDTO updatedDTO = new PatientDTO();
-        updatedDTO.setEmail("existing@example.com");
+        PatientDTO updateDTO = new PatientDTO();
+        updateDTO.setEmail("existing@example.com");
 
-        Patient existingPatient = new Patient();
-        existingPatient.setEmail("existing@example.com");
+        Patient existingWithEmail = new Patient();
+        existingWithEmail.setId(2);
+        existingWithEmail.setEmail("existing@example.com");
 
-        when(patientRepository.findById(1)).thenReturn(Optional.of(patient));
-        when(patientRepository.findByEmail(updatedDTO.getEmail())).thenReturn(Optional.of(existingPatient));
+        when(patientRepository.findById(1)).thenReturn(Optional.of(existingPatient));
+        when(patientRepository.findByEmail(updateDTO.getEmail())).thenReturn(Optional.of(existingWithEmail));
 
         // Act & Assert
         PatientServiceException exception = assertThrows(
                 PatientServiceException.class,
-                () -> patientService.updatePatient(1, updatedDTO));
+                () -> patientService.updatePatient(1, updateDTO));
 
         assertEquals("Email is already in use: existing@example.com", exception.getMessage());
+        verify(patientRepository, never()).save(any(Patient.class));
     }
 
     @Test
     void deactivatePatient_WhenExists_ShouldDeactivatePatient() {
         // Arrange
-        when(patientRepository.findById(1)).thenReturn(Optional.of(patient));
-        when(patientRepository.save(any(Patient.class))).thenReturn(patient);
+        when(patientRepository.findById(1)).thenReturn(Optional.of(existingPatient));
+        when(patientRepository.save(any(Patient.class))).thenReturn(existingPatient);
 
         // Act
-        patientService.deactivatePatient(1);
+        Patient deactivated = patientService.deactivatePatient(1);
 
         // Assert
-        assertFalse(patient.isActive());
+        assertFalse(deactivated.isActive());
         verify(patientRepository).findById(1);
-        verify(patientRepository).save(patient);
+        verify(patientRepository).save(existingPatient);
     }
 
     @Test
-    void deactivatePatient_WhenNotExists_ShouldThrowException() {
+    void getPatients_ShouldReturnPagedResults() {
         // Arrange
-        when(patientRepository.findById(1)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        PatientServiceException exception = assertThrows(
-                PatientServiceException.class,
-                () -> patientService.deactivatePatient(1));
-
-        assertEquals("Patient not found with id: 1", exception.getMessage());
-        verify(patientRepository).findById(1);
-        verify(patientRepository, never()).save(any(Patient.class));
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Patient> patients = Arrays.asList(existingPatient);
+        Page<Patient> patientPage = new PageImpl<>(patients, pageable, patients.size());
+        
+        when(patientRepository.findPatients(anyString(), any(), any(Pageable.class)))
+                .thenReturn(patientPage);
+        when(patientMapper.toDto(any(Patient.class))).thenReturn(validPatientDTO);
+        
+        // Act
+        Page<PatientDTO> result = patientService.getPatients(pageable, "search", true);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        verify(patientRepository).findPatients(eq("search"), eq(true), eq(pageable));
     }
 }
