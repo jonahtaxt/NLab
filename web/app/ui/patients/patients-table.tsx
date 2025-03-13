@@ -9,6 +9,7 @@ import PatientForm from '@/app/ui/patients/patient-form';
 import { authDelete } from '@/app/lib/auth';
 import { showToast } from '@/lib/toaster-util';
 import CardTable from '@/components/ui/card-table';
+import PatientData from './patient-data';
 
 interface PatientTableProps {
     patients: Patient[];
@@ -19,6 +20,7 @@ interface PatientTableProps {
     isLoading: boolean;
     onRefresh?: () => void;
     error?: string | null;
+    onShowPatientData: (patient: Patient) => void;
 }
 
 const PatientTable = ({
@@ -29,11 +31,13 @@ const PatientTable = ({
     sortDirection,
     isLoading,
     onRefresh,
-    error = null
+    error = null,
+    onShowPatientData
 }: PatientTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+    const [patientDataDialogOpen, setPatientDataDialogOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
     const [formSubmitting, setFormSubmitting] = useState(false);
     const [isDeactivating, setIsDeactivating] = useState(false);
@@ -92,6 +96,11 @@ const PatientTable = ({
         setFormSubmitting(false);
     };
 
+    const handleSelectedPatient = (patient: Patient) => {
+        setSelectedPatient(patient);
+        setPatientDataDialogOpen(true);
+    };
+
     // Custom header component with search and add button
     const customCardHeader = (
         <div className="flex gap-4 items-center">
@@ -129,19 +138,19 @@ const PatientTable = ({
 
         return patients.map((patient) => (
             <tr key={patient.id} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm">
+                <td className="px-4 py-3 text-sm" onClick={() => handleSelectedPatient(patient)}>
                     {patient.firstName}
                 </td>
-                <td className="px-4 py-3 text-sm">
+                <td className="px-4 py-3 text-sm" onClick={() => handleSelectedPatient(patient)}>
                     {patient.lastName}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-gray-600" onClick={() => handleSelectedPatient(patient)}>
                     {patient.email}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600">
+                <td className="px-4 py-3 text-sm text-gray-600" onClick={() => handleSelectedPatient(patient)}>
                     {patient.phone}
                 </td>
-                <td className="px-4 py-3 text-sm">
+                <td className="px-4 py-3 text-sm" onClick={() => handleSelectedPatient(patient)}>
                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${patient.active
                             ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-700'
@@ -291,6 +300,15 @@ const PatientTable = ({
                             )}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={patientDataDialogOpen} onOpenChange={setPatientDataDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{selectedPatient?.firstName + ' ' + selectedPatient?.lastName}</DialogTitle>
+                        </DialogHeader>
+                    <PatientData patient={selectedPatient} />
                 </DialogContent>
             </Dialog>
         </>

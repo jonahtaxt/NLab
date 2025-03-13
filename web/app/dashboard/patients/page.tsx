@@ -5,6 +5,7 @@ import { fetchPaginatedPatients } from '@/app/lib/data.patient';
 import { Patient, PaginatedResponse } from '@/app/lib/definitions';
 import dynamic from 'next/dynamic';
 import { useTableData } from '@/app/hooks/useTableData';
+import PatientData from '@/app/ui/patients/patient-data';
 
 // Use dynamic import for the PatientTable component
 const PatientTable = dynamic(() => import('@/app/ui/patients/patients-table'), {
@@ -26,6 +27,8 @@ export default function Page() {
     const [sortBy, setSortBy] = useState('lastName');
     const [sortDirection, setSortDirection] = useState('ASC');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [showPatientData, setShowPatientData] = useState(false);
+    const [patientData, setPatientData] = useState<Patient | null>(null);
 
     const {
         data: patientsData,
@@ -87,6 +90,10 @@ export default function Page() {
         return <div className="text-red-500 p-4">{error}</div>;
     }
 
+    const handleShowPatientData = (patient: Patient) => {
+        setPatientData(patient);
+    }
+
     return (
         <main>
             <PatientTable
@@ -98,6 +105,7 @@ export default function Page() {
                 isLoading={isLoading}
                 onRefresh={handleRefresh}
                 error={error}
+                onShowPatientData={handleShowPatientData}
             />
 
             {patientsData.totalElements > 0 && (
@@ -113,6 +121,8 @@ export default function Page() {
                     pageSizeOptions={[5, 10, 20, 50, 100]}
                 />
             )}
+
+            {patientData && <PatientData patient={patientData} />}
         </main>
     );
 }

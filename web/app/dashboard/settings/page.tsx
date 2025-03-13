@@ -5,15 +5,6 @@ import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-const PackageTypeTable = dynamic(
-    () => import("@/app/ui/packages/package-type-table"),
-    {
-        loading: () => <div className="p-8">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando...
-        </div>
-    }
-);
-
 const PaymentMethodTable = dynamic(
     () => import("@/app/ui/settings/payment-method-table"),
     {
