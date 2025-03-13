@@ -9,7 +9,6 @@ import PatientForm from '@/app/ui/patients/patient-form';
 import { authDelete } from '@/app/lib/auth';
 import { showToast } from '@/lib/toaster-util';
 import CardTable from '@/components/ui/card-table';
-import PatientData from './patient-data';
 
 interface PatientTableProps {
     patients: Patient[];
@@ -20,7 +19,7 @@ interface PatientTableProps {
     isLoading: boolean;
     onRefresh?: () => void;
     error?: string | null;
-    onShowPatientData: (patient: Patient) => void;
+    onRowClick?: (patient: Patient) => void;
 }
 
 const PatientTable = ({
@@ -32,12 +31,11 @@ const PatientTable = ({
     isLoading,
     onRefresh,
     error = null,
-    onShowPatientData
+    onRowClick
 }: PatientTableProps) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
-    const [patientDataDialogOpen, setPatientDataDialogOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
     const [formSubmitting, setFormSubmitting] = useState(false);
     const [isDeactivating, setIsDeactivating] = useState(false);
@@ -61,9 +59,21 @@ const PatientTable = ({
         setDialogOpen(true);
     };
 
-    const handleDeactivateDialogOpen = (patient: Patient) => {
+    const handleDeactivateDialogOpen = (patient: Patient, event: React.MouseEvent) => {
+        event.stopPropagation();
         setSelectedPatient(patient);
         setDeactivateDialogOpen(true);
+    };
+
+    const handleRowClick = (patient: Patient) => {
+        if (onRowClick) {
+            onRowClick(patient);
+        }
+    };
+
+    const handleEditButtonClick = (patient: Patient, event: React.MouseEvent) => {
+        event.stopPropagation();
+        handleOpenDialog(patient);
     };
 
     const deactivatePatient = async () => {
@@ -94,11 +104,6 @@ const PatientTable = ({
 
     const handleFormSubmitEnd = () => {
         setFormSubmitting(false);
-    };
-
-    const handleSelectedPatient = (patient: Patient) => {
-        setSelectedPatient(patient);
-        setPatientDataDialogOpen(true);
     };
 
     // Custom header component with search and add button
@@ -137,20 +142,24 @@ const PatientTable = ({
         }
 
         return patients.map((patient) => (
-            <tr key={patient.id} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm" onClick={() => handleSelectedPatient(patient)}>
+            <tr 
+                key={patient.id} 
+                className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => handleRowClick(patient)}
+            >
+                <td className="px-4 py-3 text-sm">
                     {patient.firstName}
                 </td>
-                <td className="px-4 py-3 text-sm" onClick={() => handleSelectedPatient(patient)}>
+                <td className="px-4 py-3 text-sm">
                     {patient.lastName}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600" onClick={() => handleSelectedPatient(patient)}>
+                <td className="px-4 py-3 text-sm text-gray-600">
                     {patient.email}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-600" onClick={() => handleSelectedPatient(patient)}>
+                <td className="px-4 py-3 text-sm text-gray-600">
                     {patient.phone}
                 </td>
-                <td className="px-4 py-3 text-sm" onClick={() => handleSelectedPatient(patient)}>
+                <td className="px-4 py-3 text-sm">
                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${patient.active
                             ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-700'
@@ -159,14 +168,14 @@ const PatientTable = ({
                     </span>
                 </td>
                 <td className="px-4 py-3 text-sm">
-                    <Button variant="ghost" onClick={() => handleOpenDialog(patient)}>
+                    <Button variant="ghost" onClick={(e) => handleEditButtonClick(patient, e)}>
                         <span className="sr-only">Edit</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-600">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                     </Button>
-                    <Button variant="ghost" disabled={!patient.active} onClick={() => handleDeactivateDialogOpen(patient)}>
+                    <Button variant="ghost" disabled={!patient.active} onClick={(e) => handleDeactivateDialogOpen(patient, e)}>
                         <span className="sr-only">Delete</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-gray-600">
                             <path d="M3 6h18"></path>
@@ -300,15 +309,6 @@ const PatientTable = ({
                             )}
                         </Button>
                     </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={patientDataDialogOpen} onOpenChange={setPatientDataDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{selectedPatient?.firstName + ' ' + selectedPatient?.lastName}</DialogTitle>
-                        </DialogHeader>
-                    <PatientData patient={selectedPatient} />
                 </DialogContent>
             </Dialog>
         </>

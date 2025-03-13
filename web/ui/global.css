@@ -158,3 +158,83 @@ input[type='number']::-webkit-outer-spin-button {
 .loader-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Main container for the slider effect */
+.patient-slider-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Slider panel that holds both views */
+.patient-slider-panel {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transition: transform 300ms ease-in-out;
+}
+
+/* Individual views */
+.patient-list-view,
+.patient-detail-view {
+  width: 50%;
+  padding: 0 1rem;
+  overflow-y: auto;
+}
+
+/* State classes for animation */
+.view-list .patient-slider-panel {
+  transform: translateX(0);
+}
+
+.view-detail .patient-slider-panel {
+  transform: translateX(-50%);
+}
+
+/* Clickable rows */
+.patient-row {
+  cursor: pointer;
+  transition: background-color 150ms ease-in-out;
+}
+
+.patient-row:hover {
+  background-color: rgba(239, 97, 69, 0.05); /* Very light coral color */
+}
+
+/* Back button styles */
+.back-button {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 150ms ease;
+}
+
+.back-button:hover {
+  background-color: rgba(239, 97, 69, 0.1);
+  color: #EF6145; /* Brand coral color */
+}
+
+/* Loading spinner */
+.detail-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 300px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 4px solid #EF6145;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
