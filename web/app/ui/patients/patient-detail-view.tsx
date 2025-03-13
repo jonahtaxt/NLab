@@ -3,14 +3,12 @@
 import { Patient } from "@/app/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogFooter, DialogHeader } from "@/components/ui/dialog";
-import { DialogContent, DialogTitle } from "@radix-ui/react-dialog";
-import { ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 
 interface PatientDetailViewProps {
   patient: Patient;
-  onBack: () => void;
+  onBack?: () => void; // Made optional as we'll use router navigation in the page component
 }
 
 const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
@@ -20,49 +18,40 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
 
   const handleAddPackageButtonClick = (patientId: number) => {
     setAddPackageDialogOpen(true);
-    alert(patientId);
   }
 
   return (
     <>
-      <div className="w-full h-full relative">
-        {/* Floating circular back button */}
-        <button
-          onClick={onBack}
-          className="absolute -left-4 top-1 z-10 flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors"
-          aria-label="Volver"
-        >
-          <ArrowLeft className="h-6 w-6 text-nlab-coral" />
-        </button>
+      <div className="w-full h-full">
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="w-full md:w-1/4">
+          <div className="w-full md:w-1/3">
             <Card>
               <CardHeader className="bg-gray-50 rounded-t-xl">
-                <CardTitle className="flex items-center gap-2 text-nlab ml-6">
+                <CardTitle className="flex items-center gap-2 text-nlab-black">
                   Información Personal
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div>
+              <CardContent className="p-6">
+                <div className="mb-4">
                   <p className="text-sm text-gray-500">Nombre Completo</p>
                   <p className="font-medium">{patient.firstName} {patient.lastName}</p>
                 </div>
-                <div>
+                <div className="mb-4">
                   <p className="text-sm text-gray-500">Correo Electrónico</p>
                   <p className="font-medium">{patient.email}</p>
                 </div>
-                <div>
+                <div className="mb-4">
                   <p className="text-sm text-gray-500">Teléfono</p>
                   <p className="font-medium">{patient.phone}</p>
                 </div>
-                <div>
+                <div className="mb-4">
                   <p className="text-sm text-gray-500">Estado</p>
                   <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${patient.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
                     }`}>
                     {patient.active ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
-                <div>
+                <div className="mb-4">
                   <p className="text-sm text-gray-500">Fecha de Creación</p>
                   <p className="font-medium">
                     {new Date(patient.createdAt).toLocaleDateString('es-MX', {
@@ -73,7 +62,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
                   </p>
                 </div>
                 {patient.updatedAt && (
-                  <div>
+                  <div className="mb-4">
                     <p className="text-sm text-gray-500">Última Actualización</p>
                     <p className="font-medium">
                       {new Date(patient.updatedAt).toLocaleDateString('es-MX', {
@@ -85,34 +74,51 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button onClick={() => handleAddPackageButtonClick(patient.id)}>Agregar Paquete</Button>
-                <Button>Agendar Cita</Button>
+              <CardFooter className="flex flex-col sm:flex-row gap-2 justify-between p-6">
+                <Button 
+                  onClick={() => handleAddPackageButtonClick(patient.id)}
+                  className="w-full sm:w-auto"
+                >
+                  Agregar Paquete
+                </Button>
+                <Button className="w-full sm:w-auto">Agendar Cita</Button>
               </CardFooter>
             </Card>
           </div>
-          <div className="w-full md:w-3/4">
-            {/* Second card component goes here */}
+          <div className="w-full md:w-2/3">
             <Card>
               <CardHeader className="bg-gray-50 rounded-t-xl">
-                <CardTitle className="flex items-center gap-2 text-nlab ml-6">
-                  Citas
+                <CardTitle className="flex items-center gap-2 text-nlab-black">
+                  Historial de Citas
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                Second card content
+              <CardContent className="p-6">
+                <div className="text-center text-gray-500 py-8">
+                  No hay citas registradas para este paciente.
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+      
       <Dialog open={addPackageDialogOpen} onOpenChange={setAddPackageDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Agregar Paquete a {patient.firstName}</DialogTitle>
           </DialogHeader>
-          Agreguele
-          <DialogFooter></DialogFooter>
+          <div className="py-4">
+            <p>Seleccione un paquete para asignar al paciente.</p>
+            {/* Package selection form would go here */}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddPackageDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button>
+              Guardar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

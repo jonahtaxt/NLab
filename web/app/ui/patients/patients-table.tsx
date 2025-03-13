@@ -9,6 +9,7 @@ import PatientForm from '@/app/ui/patients/patient-form';
 import { authDelete } from '@/app/lib/auth';
 import { showToast } from '@/lib/toaster-util';
 import CardTable from '@/components/ui/card-table';
+import { useRouter } from 'next/navigation';
 
 interface PatientTableProps {
     patients: Patient[];
@@ -19,7 +20,6 @@ interface PatientTableProps {
     isLoading: boolean;
     onRefresh?: () => void;
     error?: string | null;
-    onRowClick?: (patient: Patient) => void;
 }
 
 const PatientTable = ({
@@ -31,8 +31,8 @@ const PatientTable = ({
     isLoading,
     onRefresh,
     error = null,
-    onRowClick
 }: PatientTableProps) => {
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
@@ -66,9 +66,7 @@ const PatientTable = ({
     };
 
     const handleRowClick = (patient: Patient) => {
-        if (onRowClick) {
-            onRowClick(patient);
-        }
+        router.push(`/dashboard/patients/${patient.id}`);
     };
 
     const handleEditButtonClick = (patient: Patient, event: React.MouseEvent) => {
