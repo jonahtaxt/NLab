@@ -106,7 +106,6 @@ public class PatientService {
     }
 
     private Patient findById(Integer id) {
-
         return patientRepository.findById(id)
                 .orElseThrow(() -> new PatientServiceException("Patient not found with id: " + id));
     }

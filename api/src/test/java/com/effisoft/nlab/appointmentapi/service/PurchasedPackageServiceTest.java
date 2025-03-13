@@ -83,7 +83,6 @@ class PurchasedPackageServiceTest {
         validDTO.setPackageTypeId(1);
         validDTO.setPaymentMethodId(1);
         validDTO.setCardPaymentTypeId(1);
-        validDTO.setTotalAmount(new BigDecimal("100.00"));
 
         // Set up existing package
         existingPackage = new PurchasedPackage();
@@ -93,7 +92,6 @@ class PurchasedPackageServiceTest {
         existingPackage.setPaymentMethod(paymentMethod);
         existingPackage.setCardPaymentType(cardPaymentType);
         existingPackage.setPurchaseDate(LocalDateTime.now());
-        existingPackage.setTotalAmount(new BigDecimal("100.00"));
         existingPackage.setRemainingAppointments(4);
         existingPackage.setExpirationDate(LocalDateTime.now().plusMonths(6));
     }
@@ -112,7 +110,6 @@ class PurchasedPackageServiceTest {
 
         // Assert
         assertNotNull(created);
-        assertEquals(validDTO.getTotalAmount(), created.getTotalAmount());
         assertEquals(packageType.getNumberOfAppointments(), created.getRemainingAppointments());
         assertNotNull(created.getPurchaseDate());
         assertNotNull(created.getExpirationDate());

@@ -1,6 +1,7 @@
 package com.effisoft.nlab.appointmentapi.controller;
 
 import com.effisoft.nlab.appointmentapi.dto.PackageTypeDTO;
+import com.effisoft.nlab.appointmentapi.dto.PackageTypeSelectDTO;
 import com.effisoft.nlab.appointmentapi.dto.PageResponseDTO;
 import com.effisoft.nlab.appointmentapi.entity.PackageType;
 import com.effisoft.nlab.appointmentapi.service.PackageTypeService;
@@ -31,10 +32,10 @@ public class PackageTypeController {
         return new ResponseEntity<>(createdPackageType, HttpStatus.CREATED);
     }
 
-    @GetMapping("/active")
+    @GetMapping("/select")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
-    public ResponseEntity<List<PackageType>> getAllActivePackageTypes() {
-        List<PackageType> activePackageTypes = packageTypeService.getAllActivePackageTypes();
+    public ResponseEntity<List<PackageTypeSelectDTO>> getAllActivePackageTypes() {
+        List<PackageTypeSelectDTO> activePackageTypes = packageTypeService.getSelectActivePackageTypes();
         return ResponseEntity.ok(activePackageTypes);
     }
 

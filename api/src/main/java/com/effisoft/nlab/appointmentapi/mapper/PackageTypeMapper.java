@@ -5,6 +5,7 @@ import java.util.List;
 import org.mapstruct.*;
 
 import com.effisoft.nlab.appointmentapi.dto.PackageTypeDTO;
+import com.effisoft.nlab.appointmentapi.dto.PackageTypeSelectDTO;
 import com.effisoft.nlab.appointmentapi.entity.PackageType;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -16,7 +17,11 @@ public interface PackageTypeMapper {
 
     PackageTypeDTO toDto(PackageType entity);
 
+    PackageTypeSelectDTO selectToDto(PackageType enity);
+
     List<PackageTypeDTO> toDtoList(List<PackageType> entities);
+
+    List<PackageTypeSelectDTO> selectToDtoList(List<PackageType> entities);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "createdAt", ignore = true)
@@ -24,6 +29,6 @@ public interface PackageTypeMapper {
     void updatePackageTypeFromDTO(PackageTypeDTO dto, @MappingTarget PackageType entity);
 
     @AfterMapping
-    default void setDefaults(@MappingTarget PackageType patient) {
+    default void setDefaults(@MappingTarget PackageType packageType) {
     }
 }

@@ -1,6 +1,7 @@
 package com.effisoft.nlab.appointmentapi.service;
 
 import com.effisoft.nlab.appointmentapi.dto.PackageTypeDTO;
+import com.effisoft.nlab.appointmentapi.dto.PackageTypeSelectDTO;
 import com.effisoft.nlab.appointmentapi.entity.PackageType;
 import com.effisoft.nlab.appointmentapi.exception.PackageTypeServiceException;
 import com.effisoft.nlab.appointmentapi.mapper.PackageTypeMapper;
@@ -54,6 +55,16 @@ public class PackageTypeService {
                 packageTypeRepository::findAll,
                 PackageTypeServiceException::new,
                 "Get All Package Types");
+    }
+
+    @Transactional(readOnly = true)
+    public List<PackageTypeSelectDTO> getSelectActivePackageTypes() {
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+                () -> {
+                    return packageTypeMapper.selectToDtoList(getAllActivePackageTypes());
+                },
+                PackageTypeServiceException::new,
+                "Get Select Active Package Types");
     }
 
     @Transactional(readOnly = true)
