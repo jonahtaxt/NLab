@@ -3,12 +3,25 @@
 import { useState } from 'react';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Patient, PatientDTO } from '@/app/lib/definitions';
 import { insertPatient, updatePatient } from '@/app/lib/data.patient';
 import { Loader2 } from 'lucide-react';
 import { showToast } from '@/lib/toaster-util';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { clear } from 'console';
 
 interface PatientFormProps {
     patient?: Patient | null;
@@ -19,6 +32,15 @@ interface PatientFormProps {
     isSubmitting?: boolean;
 }
 
+// Define our form schema using Zod
+const formSchema = z.object({
+    firstName: z.string().min(1, { message: 'El nombre es requerido' }),
+    lastName: z.string().min(1, { message: 'El apellido es requerido' }),
+    email: z.string().email({ message: 'El correo electrónico no es válido' }),
+    phone: z.string().regex(/^\d{10}$/, { message: 'El teléfono debe tener 10 dígitos' }),
+    active: z.boolean().default(true),
+});
+
 const PatientForm = ({ 
     patient, 
     onClose, 
@@ -27,62 +49,22 @@ const PatientForm = ({
     onSubmitEnd,
     isSubmitting = false
 }: PatientFormProps) => {
-    const [formData, setFormData] = useState({
-        firstName: patient?.firstName || '',
-        lastName: patient?.lastName || '',
-        email: patient?.email || '',
-        phone: patient?.phone || '',
-        active: patient?.active ?? true,
+    const [serverError, setServerError] = useState<string | null>(null);
+
+    // Initialize form with react-hook-form and zod validation
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            firstName: patient?.firstName || '',
+            lastName: patient?.lastName || '',
+            email: patient?.email || '',
+            phone: patient?.phone || '',
+            active: patient?.active ?? true,
+        },
     });
-    
-    const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const validateForm = (): boolean => {
-        const newErrors: Record<string, string> = {};
-        
-        if (!formData.firstName.trim()) {
-            newErrors.firstName = 'El nombre es requerido';
-        }
-        
-        if (!formData.lastName.trim()) {
-            newErrors.lastName = 'El apellido es requerido';
-        }
-        
-        if (!formData.email.trim()) {
-            newErrors.email = 'El correo electrónico es requerido';
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = 'El correo electrónico no es válido';
-        }
-        
-        if (!formData.phone.trim()) {
-            newErrors.phone = 'El teléfono es requerido';
-        } else if (!/^\d{10}$/.test(formData.phone)) {
-            newErrors.phone = 'El teléfono debe tener 10 dígitos';
-        }
-        
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
-        
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (!validateForm()) {
-            return;
-        }
+    const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+        setServerError(null);
         
         try {
             // Signal that submission is starting
@@ -92,21 +74,20 @@ const PatientForm = ({
             
             const patientDTO: PatientDTO = {
                 id: patient?.id || null,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                phone: formData.phone,
-                active: formData.active
-            }
+                firstName: values.firstName,
+                lastName: values.lastName,
+                email: values.email,
+                phone: values.phone,
+                active: values.active
+            };
             
-            if(patient) {
-                const updatedPatient = await updatePatient(patientDTO);
+            if (patient) {
+                await updatePatient(patientDTO);
+                showToast.success('Paciente actualizado correctamente');
             } else {
-                const newPatient = await insertPatient(patientDTO);
+                await insertPatient(patientDTO);
+                showToast.success('Paciente creado correctamente');
             }
-            
-            // Show success notification
-            showToast.success(patient?.id ? 'Paciente actualizado correctamente' : 'Paciente creado correctamente');
             
             // Call the success callback to trigger refresh in parent
             if (onSuccess) {
@@ -116,10 +97,14 @@ const PatientForm = ({
             onClose();
         } catch (error) {
             console.error('Error saving patient:', error);
+            
+            if (error instanceof Error) {
+                setServerError(error.message || 'Error al guardar el paciente');
+            } else {
+                setServerError('Error al guardar el paciente');
+            }
+            
             showToast.error('Error al guardar el paciente');
-            setErrors({
-                submit: 'Ocurrió un error al guardar el paciente. Por favor, inténtalo de nuevo.'
-            });
         } finally {
             // Signal that submission has ended
             if (onSubmitEnd) {
@@ -129,112 +114,129 @@ const PatientForm = ({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            {errors.submit && (
-                <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
-                    {errors.submit}
-                </div>
-            )}
-            
-            <div>
-                <Label htmlFor="firstName" className="flex justify-between">
-                    <span>Nombre</span>
-                    {errors.firstName && <span className="text-red-500 text-xs">{errors.firstName}</span>}
-                </Label>
-                <Input 
-                    id="firstName" 
-                    name="firstName" 
-                    value={formData.firstName} 
-                    onChange={handleChange} 
-                    className={errors.firstName ? "border-red-500" : ""}
-                    disabled={isSubmitting}
-                />
-            </div>
-            
-            <div>
-                <Label htmlFor="lastName" className="flex justify-between">
-                    <span>Apellido</span>
-                    {errors.lastName && <span className="text-red-500 text-xs">{errors.lastName}</span>}
-                </Label>
-                <Input 
-                    id="lastName" 
-                    name="lastName" 
-                    value={formData.lastName} 
-                    onChange={handleChange}
-                    className={errors.lastName ? "border-red-500" : ""}
-                    disabled={isSubmitting}
-                />
-            </div>
-            
-            <div>
-                <Label htmlFor="email" className="flex justify-between">
-                    <span>Correo Electrónico</span>
-                    {errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}
-                </Label>
-                <Input 
-                    id="email" 
-                    name="email" 
-                    type="email" 
-                    value={formData.email} 
-                    onChange={handleChange}
-                    className={errors.email ? "border-red-500" : ""}
-                    disabled={isSubmitting}
-                />
-            </div>
-            
-            <div>
-                <Label htmlFor="phone" className="flex justify-between">
-                    <span>Teléfono</span>
-                    {errors.phone && <span className="text-red-500 text-xs">{errors.phone}</span>}
-                </Label>
-                <Input 
-                    id="phone" 
-                    name="phone" 
-                    value={formData.phone} 
-                    onChange={handleChange}
-                    className={errors.phone ? "border-red-500" : ""}
-                    disabled={isSubmitting}
-                    maxLength={10}
-                />
-            </div>
-            
-            <div className="flex items-center gap-2">
-                <input 
-                    id="active" 
-                    name="active" 
-                    type="checkbox" 
-                    checked={formData.active} 
-                    onChange={handleChange}
-                    disabled={isSubmitting}
-                />
-                <Label htmlFor="isActive">Activo</Label>
-            </div>
-            
-            <DialogFooter>
-                <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                >
-                    Cancelar
-                </Button>
-                <Button 
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="min-w-24"
-                >
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Guardando...
-                        </>
-                    ) : (
-                        'Guardar'
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                {serverError && (
+                    <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                        {serverError}
+                    </div>
+                )}
+                
+                <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Nombre</FormLabel>
+                            <FormControl>
+                                <Input 
+                                    {...field} 
+                                    disabled={isSubmitting} 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
                     )}
-                </Button>
-            </DialogFooter>
-        </form>
+                />
+                
+                <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Apellido</FormLabel>
+                            <FormControl>
+                                <Input 
+                                    {...field} 
+                                    disabled={isSubmitting} 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Correo Electrónico</FormLabel>
+                            <FormControl>
+                                <Input 
+                                    {...field} 
+                                    type="email"
+                                    disabled={isSubmitting} 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
+                <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Teléfono</FormLabel>
+                            <FormControl>
+                                <Input 
+                                    {...field} 
+                                    maxLength={10}
+                                    disabled={isSubmitting} 
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                
+                <FormField
+                    control={form.control}
+                    name="active"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md">
+                            <FormControl>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    disabled={isSubmitting}
+                                />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <FormLabel>Activo</FormLabel>
+                            </div>
+                        </FormItem>
+                    )}
+                />
+                
+                <DialogFooter>
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button 
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="min-w-24"
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Guardando...
+                            </>
+                        ) : (
+                            'Guardar'
+                        )}
+                    </Button>
+                </DialogFooter>
+            </form>
+        </Form>
     );
 };
 
