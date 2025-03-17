@@ -92,6 +92,12 @@ export type PackageTypeDTO = {
   active: boolean;
 }
 
+export type PackageTypeSelectDTO = {
+  id: number;
+  name: string;
+  numberOfAppointments: number;
+}
+
 export type PaginatedResponse<T> = {
   content: T[];
   pageNumber: number;
@@ -100,4 +106,13 @@ export type PaginatedResponse<T> = {
   totalPages: number;
   first: boolean;
   last: boolean;
+}
+
+export type PurchasedPackageDTO = {
+  id: number;
+  patientId: number;
+  packageTypeId: number;
+  paymentMethodId: number;
+  cardPaymentTypeId: number;
+  remainingAppointments: number;
 }
