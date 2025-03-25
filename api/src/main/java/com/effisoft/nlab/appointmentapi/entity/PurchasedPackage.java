@@ -23,17 +23,10 @@ public class PurchasedPackage {
     @JoinColumn(name = "PackageTypeID", nullable = false)
     private PackageType packageType;
 
-    @NotNull(message = "Payment method is required")
-    @ManyToOne
-    @JoinColumn(name = "PaymentMethodID", nullable = false)
-    private PaymentMethod paymentMethod;
-
-    @ManyToOne
-    @JoinColumn(name = "CardPaymentTypeID")
-    private CardPaymentType cardPaymentType;
-
     @Column(nullable = false)
     private LocalDateTime purchaseDate;
+
+    private Boolean paidInFull;
 
     @NotNull(message = "Remaining appointments is required")
     @Min(value = 0, message = "Remaining appointments cannot be negative")

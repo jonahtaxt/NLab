@@ -12,6 +12,7 @@ public interface NutritionistMapper {
 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "id", expression = "java(dto.getId() != null && dto.getId() > 0 ? dto.getId() : null)")
     Nutritionist toEntity(NutritionistDTO dto);
 
     NutritionistDTO toDto(Nutritionist entity);

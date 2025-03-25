@@ -14,11 +14,6 @@ public class PurchasedPackageDTO {
     @NotNull(message = "Package type ID is required")
     private Integer packageTypeId;
 
-    @NotNull(message = "Payment method ID is required")
-    private Integer paymentMethodId;
-
-    private Integer cardPaymentTypeId;
-
     private LocalDateTime purchaseDate;
 
     @Min(value = 0, message = "Remaining appointments cannot be negative")

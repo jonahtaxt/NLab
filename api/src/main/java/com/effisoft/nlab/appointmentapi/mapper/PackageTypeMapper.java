@@ -13,6 +13,7 @@ public interface PackageTypeMapper {
 
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "id", expression = "java(dto.getId() != null && dto.getId() > 0 ? dto.getId() : null)")
     PackageType toEntity(PackageTypeDTO dto);
 
     PackageTypeDTO toDto(PackageType entity);

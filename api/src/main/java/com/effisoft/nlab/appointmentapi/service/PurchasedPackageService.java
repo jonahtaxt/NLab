@@ -22,8 +22,6 @@ public class PurchasedPackageService {
         private final PurchasedPackageRepository purchasedPackageRepository;
         private final PatientRepository patientRepository;
         private final PackageTypeRepository packageTypeRepository;
-        private final PaymentMethodRepository paymentMethodRepository;
-        private final CardPaymentTypeRepository cardPaymentTypeRepository;
 
         @Transactional
         public PurchasedPackage createPurchasedPackage(@Valid PurchasedPackageDTO dto) {
@@ -40,26 +38,12 @@ public class PurchasedPackageService {
                                                         .orElseThrow(() -> new PurchasedPackageServiceException(
                                                                         "Package type not found"));
 
-                                        PaymentMethod paymentMethod = paymentMethodRepository
-                                                        .findById(dto.getPaymentMethodId())
-                                                        .orElseThrow(() -> new PurchasedPackageServiceException(
-                                                                        "Payment method not found"));
-
                                         purchasedPackage.setPatient(patient);
                                         purchasedPackage.setPackageType(packageType);
-                                        purchasedPackage.setPaymentMethod(paymentMethod);
-
-                                        // Set card payment type if provided
-                                        if (dto.getCardPaymentTypeId() != null) {
-                                                CardPaymentType cardPaymentType = cardPaymentTypeRepository
-                                                                .findById(dto.getCardPaymentTypeId())
-                                                                .orElseThrow(() -> new PurchasedPackageServiceException(
-                                                                                "Card payment type not found"));
-                                                purchasedPackage.setCardPaymentType(cardPaymentType);
-                                        }
 
                                         // Set other fields
                                         purchasedPackage.setPurchaseDate(LocalDateTime.now());
+                                        purchasedPackage.setPaidInFull(false);
                                         purchasedPackage.setRemainingAppointments(
                                                         packageType.getNumberOfAppointments());
                                         purchasedPackage.setExpirationDate(LocalDateTime.now().plusMonths(6));

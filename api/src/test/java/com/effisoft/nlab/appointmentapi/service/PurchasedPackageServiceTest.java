@@ -34,12 +34,6 @@ class PurchasedPackageServiceTest {
     @Mock
     private PackageTypeRepository packageTypeRepository;
 
-    @Mock
-    private PaymentMethodRepository paymentMethodRepository;
-
-    @Mock
-    private CardPaymentTypeRepository cardPaymentTypeRepository;
-
     @InjectMocks
     private PurchasedPackageService purchasedPackageService;
 
@@ -47,8 +41,6 @@ class PurchasedPackageServiceTest {
     private PurchasedPackage existingPackage;
     private Patient patient;
     private PackageType packageType;
-    private PaymentMethod paymentMethod;
-    private CardPaymentType cardPaymentType;
 
     @BeforeEach
     void setUp() {
@@ -66,31 +58,16 @@ class PurchasedPackageServiceTest {
         packageType.setNumberOfAppointments(4);
         packageType.setPrice(new BigDecimal("100.00"));
 
-        // Set up payment method
-        paymentMethod = new PaymentMethod();
-        paymentMethod.setId(1);
-        paymentMethod.setName("Credit Card");
-
-        // Set up card payment type
-        cardPaymentType = new CardPaymentType();
-        cardPaymentType.setId(1);
-        cardPaymentType.setName("Regular Payment");
-        cardPaymentType.setBankFeePercentage(new BigDecimal("2.5"));
-
         // Set up valid DTO
         validDTO = new PurchasedPackageDTO();
         validDTO.setPatientId(1);
         validDTO.setPackageTypeId(1);
-        validDTO.setPaymentMethodId(1);
-        validDTO.setCardPaymentTypeId(1);
 
         // Set up existing package
         existingPackage = new PurchasedPackage();
         existingPackage.setId(1);
         existingPackage.setPatient(patient);
         existingPackage.setPackageType(packageType);
-        existingPackage.setPaymentMethod(paymentMethod);
-        existingPackage.setCardPaymentType(cardPaymentType);
         existingPackage.setPurchaseDate(LocalDateTime.now());
         existingPackage.setRemainingAppointments(4);
         existingPackage.setExpirationDate(LocalDateTime.now().plusMonths(6));
@@ -101,8 +78,6 @@ class PurchasedPackageServiceTest {
         // Arrange
         when(patientRepository.findById(1)).thenReturn(Optional.of(patient));
         when(packageTypeRepository.findById(1)).thenReturn(Optional.of(packageType));
-        when(paymentMethodRepository.findById(1)).thenReturn(Optional.of(paymentMethod));
-        when(cardPaymentTypeRepository.findById(1)).thenReturn(Optional.of(cardPaymentType));
         when(purchasedPackageRepository.save(any(PurchasedPackage.class))).thenReturn(existingPackage);
 
         // Act
@@ -116,8 +91,6 @@ class PurchasedPackageServiceTest {
 
         verify(patientRepository).findById(1);
         verify(packageTypeRepository).findById(1);
-        verify(paymentMethodRepository).findById(1);
-        verify(cardPaymentTypeRepository).findById(1);
         verify(purchasedPackageRepository).save(any(PurchasedPackage.class));
     }
 
@@ -141,8 +114,6 @@ class PurchasedPackageServiceTest {
         // Arrange
         when(patientRepository.findById(1)).thenReturn(Optional.of(patient));
         when(packageTypeRepository.findById(1)).thenReturn(Optional.of(packageType));
-        when(paymentMethodRepository.findById(1)).thenReturn(Optional.of(paymentMethod));
-        when(cardPaymentTypeRepository.findById(1)).thenReturn(Optional.of(cardPaymentType));
         when(purchasedPackageRepository.save(any(PurchasedPackage.class)))
                 .thenThrow(new DataIntegrityViolationException("Database error"));
 
