@@ -1,5 +1,5 @@
 import { authGet, authPost, authPut } from "@/app/lib/auth";
-import { PackageType, PackageTypeDTO, PaginatedResponse } from "@/app/lib/definitions";
+import { PackageType, PackageTypeDTO, PackageTypeSelectDTO, PaginatedResponse } from "@/app/lib/definitions";
 
 export async function fetchPaginatedPackageTypes(
   page: number = 0,
@@ -33,6 +33,14 @@ export async function fetchAllPackageTypes(): Promise<PackageType[]> {
   } catch (err) {
     console.error('API error:', err);
     throw new Error('Error al obtener Tipos de Paquete');
+  }
+}
+
+export async function fetchSelectPackageTypes(): Promise<PackageTypeSelectDTO[]> {
+  try {
+    return await authGet<PackageTypeSelectDTO[]>('/api/package-types/select');
+  } catch (err) {
+    throw new Error('Error al obtener lista de Paquetes para selección');
   }
 }
 

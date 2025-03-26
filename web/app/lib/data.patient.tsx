@@ -101,3 +101,4 @@ export async function fetchActivePatients(): Promise<Patient[]> {
     throw new Error('Error al obtener pacientes activos');
   }
 }
+

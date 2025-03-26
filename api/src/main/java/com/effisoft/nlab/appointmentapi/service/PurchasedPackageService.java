@@ -7,6 +7,9 @@ import com.effisoft.nlab.appointmentapi.repository.*;
 import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -99,5 +102,20 @@ public class PurchasedPackageService {
                                 },
                                 PurchasedPackageServiceException::new,
                                 "Check if Package is Valid");
+        }
+
+        @Transactional(readOnly = true)
+        public Page<PurchasedPackage> getPurchasedPackagesByPatientId(Integer patientId, Pageable pageable) {
+                return ServiceExceptionHandler.executeWithExceptionHandling(
+                                () -> {
+                                        // Verify patient exists
+                                        if (!patientRepository.existsById(patientId)) {
+                                                throw new PurchasedPackageServiceException(
+                                                                "Patient not found with id: " + patientId);
+                                        }
+                                        return purchasedPackageRepository.findByPatientId(patientId, pageable);
+                                },
+                                PurchasedPackageServiceException::new,
+                                "Get Purchased Packages by Patient ID");
         }
 }

@@ -1,10 +1,12 @@
 'use client';
 
-import { Patient } from "@/app/lib/definitions";
+import { PackageTypeSelectDTO, Patient } from "@/app/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { fetchSelectPackageTypes } from "@/app/lib/data.package-type";
 
 interface PatientDetailViewProps {
   patient: Patient;
@@ -15,9 +17,15 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   if (!patient) return null;
 
   const [addPackageDialogOpen, setAddPackageDialogOpen] = useState(false);
+  const [packageTypes, setPackageTypes] = useState<PackageTypeSelectDTO[]>([]);
 
-  const handleAddPackageButtonClick = (patientId: number) => {
+  const handleAddPackageButtonClick = async (patientId: number) => {
     setAddPackageDialogOpen(true);
+    setPackageTypes(await fetchSelectPackageTypes());
+  };
+
+  const handleAddAppointment = (patientId: number) => {
+    alert(1);
   }
 
   return (
@@ -75,13 +83,12 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
                 )}
               </CardContent>
               <CardFooter className="flex flex-col sm:flex-row gap-2 justify-between p-6">
-                <Button 
+                <Button
                   onClick={() => handleAddPackageButtonClick(patient.id)}
-                  className="w-full sm:w-auto"
-                >
-                  Agregar Paquete
-                </Button>
-                <Button className="w-full sm:w-auto">Agendar Cita</Button>
+                  className="w-full sm:w-auto">Agregar Paquete</Button>
+                <Button
+                  onClick={() => handleAddAppointment(patient.id)}
+                  className="w-full sm:w-auto">Agendar Cita</Button>
               </CardFooter>
             </Card>
           </div>
@@ -99,9 +106,23 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
               </CardContent>
             </Card>
           </div>
+          <div className="w-full md:w-2/3">
+            <Card>
+              <CardHeader className="bg-gray-50 rounded-t-xl">
+                <CardTitle className="flex items-center gap-2 text-nlab-black">
+                  Paquetes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="text-center text-gray-500 py-8">
+                  No existen paquetes asignados a este paciente.
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-      
+
       <Dialog open={addPackageDialogOpen} onOpenChange={setAddPackageDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -109,7 +130,21 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           </DialogHeader>
           <div className="py-4">
             <p>Seleccione un paquete para asignar al paciente.</p>
-            {/* Package selection form would go here */}
+            <form>
+              <Select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Selecciona un paquete" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Paquetes</SelectLabel>
+                    {packageTypes.map((packageType) => (
+                      <SelectItem value={packageType.id.toString()}>{packageType.name + ' (Citas: ' + packageType.numberOfAppointments + ')'} </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </form>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddPackageDialogOpen(false)}>
