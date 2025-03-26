@@ -115,9 +115,35 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           </span>
         </td>
         <td className="px-4 py-3 text-sm text-center">
-          <Button variant="ghost" onClick={() => handleViewPackage(pkg.id)} className="text-sm">
-            Ver
-          </Button>
+          <div className="flex items-center justify-center space-x-2">
+            <Button variant="ghost" onClick={() => handleViewPackage(pkg.id)} className="h-8 w-8 p-1" title="Ver detalles">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </Button>
+            <Button variant="ghost" onClick={() => handlePayment(pkg.id)} className="h-8 w-8 p-1" title="Registrar pago">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+                <path d="M12 18V6" />
+              </svg>
+            </Button>
+            <Button variant="ghost" onClick={() => handleBookAppointment(pkg.id)} className="h-8 w-8 p-1" title="Agendar cita">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                <line x1="16" x2="16" y1="2" y2="6" />
+                <line x1="8" x2="8" y1="2" y2="6" />
+                <line x1="3" x2="21" y1="10" y2="10" />
+                <path d="M8 14h.01" />
+                <path d="M12 14h.01" />
+                <path d="M16 14h.01" />
+                <path d="M8 18h.01" />
+                <path d="M12 18h.01" />
+                <path d="M16 18h.01" />
+              </svg>
+            </Button>
+          </div>
         </td>
       </tr>
     ));
@@ -126,6 +152,18 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   const handleViewPackage = (packageId: number) => {
     // Implement view package details
     console.log("View package:", packageId);
+  };
+
+  const handlePayment = (packageId: number) => {
+    // Implement payment registration
+    console.log("Register payment for package:", packageId);
+    alert("Función de registro de pago no implementada");
+  };
+
+  const handleBookAppointment = (packageId: number) => {
+    // Implement appointment booking
+    console.log("Book appointment for package:", packageId);
+    alert("Función de agenda de cita no implementada");
   };
 
   // Empty state for packages table
@@ -233,63 +271,75 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
                 </CardContent>
                 <CardFooter className="flex flex-col sm:flex-row gap-2 justify-between p-6">
                   <Button
-                    onClick={handleAddPackageButtonClick}
-                    className="w-full sm:w-auto">Agregar Paquete</Button>
-                  <Button
                     onClick={handleAddAppointment}
-                    className="w-full sm:w-auto">Agendar Cita</Button>
+                    className="w-full">Agendar Cita</Button>
                 </CardFooter>
               </Card>
             </div>
 
             <div className="md:col-span-3">
-              <CardTable
-                cardTitle="Paquetes"
-                headers={[
-                  'Nombre del Paquete',
-                  'Fecha de Compra',
-                  'Citas Restantes',
-                  'Fecha de Expiración',
-                  'Estado de Pago',
-                  'Acciones'
-                ]}
-                loadRows={renderPackageRows}
-                isLoading={isLoading}
-                error={error}
-                emptyState={emptyPackagesState}
-                onRetry={() => loadPackages(0)}
-                customCardHeader={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => loadPackages(currentPage)}
-                    disabled={isLoading}
-                  >
-                    <RefreshCcw className="h-4 w-4" />
-                    <span className="sr-only">Refrescar</span>
-                  </Button>
-                }
-              />
+              {/* Wrap both the CardTable and Pagination in a Container */}
+              <div className="flex flex-col h-full">
+                <CardTable
+                  cardTitle="Paquetes"
+                  headers={[
+                    'Nombre del Paquete',
+                    'Fecha de Compra',
+                    'Citas Restantes',
+                    'Fecha de Expiración',
+                    'Estado de Pago',
+                    'Acciones'
+                  ]}
+                  loadRows={renderPackageRows}
+                  isLoading={isLoading}
+                  error={error}
+                  emptyState={emptyPackagesState}
+                  onRetry={() => loadPackages(0)}
+                  customCardHeader={
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => loadPackages(currentPage)}
+                        disabled={isLoading}
+                      >
+                        <RefreshCcw className="h-4 w-4" />
+                        <span className="sr-only">Refrescar</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleAddPackageButtonClick}
+                        className="ml-2"
+                      >
+                        Agregar Paquete
+                      </Button>
+                    </div>
+                  }
+                />
 
-              {packageData.totalElements > 0 && (
-                <div className="mt-4">
-                  <Pagination
-                    currentPage={packageData.pageNumber}
-                    pageSize={packageData.pageSize}
-                    totalPages={packageData.totalPages}
-                    totalElements={packageData.totalElements}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                    isFirstPage={packageData.first}
-                    isLastPage={packageData.last}
-                    pageSizeOptions={[5, 10, 20]}
-                  />
-                </div>
-              )}
+                {/* Pagination is now contained within the same column as the CardTable */}
+                {packageData.totalElements > 0 && (
+                  <div className="mt-4 mb-6">
+                    <Pagination
+                      currentPage={packageData.pageNumber}
+                      pageSize={packageData.pageSize}
+                      totalPages={packageData.totalPages}
+                      totalElements={packageData.totalElements}
+                      onPageChange={handlePageChange}
+                      onPageSizeChange={handlePageSizeChange}
+                      isFirstPage={packageData.first}
+                      isLastPage={packageData.last}
+                      pageSizeOptions={[5, 10, 20]}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+
+          {/* This was moved down to avoid overlapping with the pagination */}
+          <div className="grid grid-cols-1 gap-4 mt-4">
             <div className="col-span-full">
               <Card>
                 <CardHeader className="bg-gray-50 rounded-t-xl">
