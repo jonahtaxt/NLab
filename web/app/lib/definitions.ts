@@ -108,11 +108,20 @@ export type PaginatedResponse<T> = {
   last: boolean;
 }
 
-export type PurchasedPackageDTO = {
+export type PurchasedPackage = {
   id: number;
+  patient: Patient;
+  packageType: PackageType;
+  purchaseDate: string;
+  paidInFull: boolean;
+  remainingAppointments: number;
+  expirationDate: string;
+}
+
+export type PurchasedPackageDTO = {
+  id?: number;
   patientId: number;
   packageTypeId: number;
-  paymentMethodId: number;
-  cardPaymentTypeId: number;
-  remainingAppointments: number;
+  remainingAppointments?: number;
+  expirationDate?: string;
 }
