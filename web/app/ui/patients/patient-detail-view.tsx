@@ -25,7 +25,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   const [addPackageDialogOpen, setAddPackageDialogOpen] = useState(false);
   const [packageTypes, setPackageTypes] = useState<PackageTypeSelectDTO[]>([]);
   const [selectedPackageType, setSelectedPackageType] = useState<string>("");
-  
+
   // Packages table state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -55,7 +55,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
       setIsLoading(false);
     }
   };
-  
+
   // Load packages data when component mounts or dependencies change
   useEffect(() => {
     loadPackages();
@@ -107,11 +107,10 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           {new Date(pkg.expirationDate).toLocaleDateString('es-MX')}
         </td>
         <td className="px-4 py-3 text-sm">
-          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-            pkg.paidInFull 
-              ? 'bg-green-100 text-green-700' 
-              : 'bg-yellow-100 text-yellow-700'
-          }`}>
+          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${pkg.paidInFull
+            ? 'bg-green-100 text-green-700'
+            : 'bg-yellow-100 text-yellow-700'
+            }`}>
             {pkg.paidInFull ? 'Pagado' : 'Pendiente'}
           </span>
         </td>
@@ -144,28 +143,28 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
       alert("Por favor seleccione un paquete");
       return;
     }
-    
+
     try {
       const saveBtn = document.querySelector('[data-save-package]') as HTMLButtonElement;
       if (saveBtn) saveBtn.disabled = true;
-      
+
       // Create package DTO
       const packageDTO: PurchasedPackageDTO = {
         patientId: patient.id,
         packageTypeId: parseInt(selectedPackageType)
       };
-      
+
       // Call API to create package
       await createPurchasedPackage(packageDTO);
-      
+
       // Close dialog
       setAddPackageDialogOpen(false);
       setSelectedPackageType("");
-      
+
       // Reload packages data with reset to first page
       setCurrentPage(0);
       await loadPackages(0);
-      
+
       // Display success message
       showToast.success("Paquete agregado exitosamente");
     } catch (error) {
@@ -181,7 +180,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
     <>
       <div className="w-full h-full">
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-1">
               <Card>
                 <CardHeader className="bg-gray-50 rounded-t-xl">
@@ -243,76 +242,68 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
               </Card>
             </div>
 
-            <div className="md:col-span-2">
+            <div className="md:col-span-3">
+              <CardTable
+                cardTitle="Paquetes"
+                headers={[
+                  'Nombre del Paquete',
+                  'Fecha de Compra',
+                  'Citas Restantes',
+                  'Fecha de Expiración',
+                  'Estado de Pago',
+                  'Acciones'
+                ]}
+                loadRows={renderPackageRows}
+                isLoading={isLoading}
+                error={error}
+                emptyState={emptyPackagesState}
+                onRetry={() => loadPackages(0)}
+                customCardHeader={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => loadPackages(currentPage)}
+                    disabled={isLoading}
+                  >
+                    <RefreshCcw className="h-4 w-4" />
+                    <span className="sr-only">Refrescar</span>
+                  </Button>
+                }
+              />
+
+              {packageData.totalElements > 0 && (
+                <div className="mt-4">
+                  <Pagination
+                    currentPage={packageData.pageNumber}
+                    pageSize={packageData.pageSize}
+                    totalPages={packageData.totalPages}
+                    totalElements={packageData.totalElements}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    isFirstPage={packageData.first}
+                    isLastPage={packageData.last}
+                    pageSizeOptions={[5, 10, 20]}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="col-span-full">
               <Card>
                 <CardHeader className="bg-gray-50 rounded-t-xl">
-                  <div className="flex justify-between items-center w-full">
-                    <CardTitle className="flex items-center gap-2 text-nlab-black">
-                      Paquetes
-                    </CardTitle>
-                    <Button 
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => loadPackages(currentPage)}
-                      disabled={isLoading}
-                    >
-                      <RefreshCcw className="h-4 w-4" />
-                      <span className="sr-only">Refrescar</span>
-                    </Button>
-                  </div>
+                  <CardTitle className="flex items-center gap-2 text-nlab-black">
+                    Historial de Citas
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <CardTable
-                    cardTitle=""
-                    headers={[
-                      'Nombre del Paquete', 
-                      'Fecha de Compra', 
-                      'Citas Restantes', 
-                      'Fecha de Expiración', 
-                      'Estado de Pago',
-                      'Acciones'
-                    ]}
-                    loadRows={renderPackageRows}
-                    isLoading={isLoading}
-                    error={error}
-                    emptyState={emptyPackagesState}
-                    onRetry={() => loadPackages(0)}
-                  />
-                  
-                  {packageData.totalElements > 0 && (
-                    <div className="px-4 py-2">
-                      <Pagination
-                        currentPage={packageData.pageNumber}
-                        pageSize={packageData.pageSize}
-                        totalPages={packageData.totalPages}
-                        totalElements={packageData.totalElements}
-                        onPageChange={handlePageChange}
-                        onPageSizeChange={handlePageSizeChange}
-                        isFirstPage={packageData.first}
-                        isLastPage={packageData.last}
-                        pageSizeOptions={[5, 10, 20]}
-                      />
-                    </div>
-                  )}
+                <CardContent className="p-6">
+                  <div className="text-center text-gray-500 py-8">
+                    No hay citas registradas para este paciente.
+                  </div>
                 </CardContent>
               </Card>
             </div>
-          </div>
-          
-          <div className="col-span-full">
-            <Card>
-              <CardHeader className="bg-gray-50 rounded-t-xl">
-                <CardTitle className="flex items-center gap-2 text-nlab-black">
-                  Historial de Citas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="text-center text-gray-500 py-8">
-                  No hay citas registradas para este paciente.
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
