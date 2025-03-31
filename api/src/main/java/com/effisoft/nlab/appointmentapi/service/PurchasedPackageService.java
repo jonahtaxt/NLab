@@ -1,5 +1,7 @@
 package com.effisoft.nlab.appointmentapi.service;
 
+import com.effisoft.nlab.appointmentapi.dto.PatientPackagePaymentsDTO;
+import com.effisoft.nlab.appointmentapi.dto.PatientPurchasedPackageDTO;
 import com.effisoft.nlab.appointmentapi.dto.PurchasedPackageDTO;
 import com.effisoft.nlab.appointmentapi.entity.*;
 import com.effisoft.nlab.appointmentapi.exception.PurchasedPackageServiceException;
@@ -25,6 +27,7 @@ public class PurchasedPackageService {
         private final PurchasedPackageRepository purchasedPackageRepository;
         private final PatientRepository patientRepository;
         private final PackageTypeRepository packageTypeRepository;
+        private final PatientPaymentRepository patientPaymentRepository;
 
         @Transactional
         public PurchasedPackage createPurchasedPackage(@Valid PurchasedPackageDTO dto) {
@@ -117,5 +120,45 @@ public class PurchasedPackageService {
                                 },
                                 PurchasedPackageServiceException::new,
                                 "Get Purchased Packages by Patient ID");
+        }
+
+        @Transactional(readOnly = true)
+        public PatientPurchasedPackageDTO getPatientPurchasedPackageByPackageId(Integer purchasedPackageId) {
+                return ServiceExceptionHandler.executeWithExceptionHandling(
+                                () -> {
+                                        PurchasedPackage purchasedPackage = getPurchasedPackageById(purchasedPackageId);
+                                        PatientPurchasedPackageDTO patientPurchasedPackage = new PatientPurchasedPackageDTO();
+                                        patientPurchasedPackage.setPurchasedPackage(purchasedPackage);
+                                        List<PatientPayment> patientPayments = patientPaymentRepository
+                                                        .findByPurchasedPackageId(purchasedPackageId);
+                                        if (!patientPayments.isEmpty()) {
+                                                patientPurchasedPackage.setPatientPayments(patientPayments.stream()
+                                                                .map(payment -> {
+                                                                        PatientPackagePaymentsDTO paymentDTO = new PatientPackagePaymentsDTO();
+                                                                        paymentDTO.setPaymentDate(
+                                                                                        payment.getPaymentDate());
+                                                                        paymentDTO.setTotalPaid(payment.getTotalPaid());
+                                                                        paymentDTO.setPaymentMethodName(
+                                                                                        payment.getPaymentMethod()
+                                                                                                        .getName());
+                                                                        paymentDTO.setCardPaymentTypeName(
+                                                                                        payment.getCardPaymentType() != null
+                                                                                                        ? payment.getCardPaymentType()
+                                                                                                                        .getName()
+                                                                                                        : null);
+                                                                        paymentDTO.setPurchasedPackageId(
+                                                                                        payment.getPurchasedPackage()
+                                                                                                        .getId());
+                                                                        paymentDTO.setId(payment.getId());
+                                                                        paymentDTO.setTotalPaid(payment.getTotalPaid());
+                                                                        return paymentDTO;
+                                                                })
+                                                                .toList());
+                                        }
+
+                                        return patientPurchasedPackage;
+                                },
+                                PurchasedPackageServiceException::new,
+                                "Get Patient Purchased Package by Package ID");
         }
 }

@@ -1,6 +1,7 @@
 package com.effisoft.nlab.appointmentapi.controller;
 
 import com.effisoft.nlab.appointmentapi.dto.PageResponseDTO;
+import com.effisoft.nlab.appointmentapi.dto.PatientPurchasedPackageDTO;
 import com.effisoft.nlab.appointmentapi.dto.PurchasedPackageDTO;
 import com.effisoft.nlab.appointmentapi.entity.PurchasedPackage;
 import com.effisoft.nlab.appointmentapi.service.PurchasedPackageService;
@@ -41,9 +42,10 @@ public class PurchasedPackageController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST', 'PATIENT')")
-    public ResponseEntity<PurchasedPackage> getPurchasedPackageById(@PathVariable Integer id) {
-        PurchasedPackage purchasedPackage = purchasedPackageService.getPurchasedPackageById(id);
-        return ResponseEntity.ok(purchasedPackage);
+    public ResponseEntity<PatientPurchasedPackageDTO> getPurchasedPackageById(@PathVariable Integer id) {
+        PatientPurchasedPackageDTO patientPurchasedPackage = purchasedPackageService
+                .getPatientPurchasedPackageByPackageId(id);
+        return ResponseEntity.ok(patientPurchasedPackage);
     }
 
     @PutMapping("/{id}")
