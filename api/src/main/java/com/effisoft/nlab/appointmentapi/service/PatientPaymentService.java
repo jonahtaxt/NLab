@@ -53,7 +53,7 @@ public class PatientPaymentService {
                                 .orElseThrow(() -> new PatientPaymentException("Card Payment Type not found"));
                     }
 
-                    PackageType packageType = packageTypeRepository.findById(purchasedPackage.getId())
+                    PackageType packageType = packageTypeRepository.findById(purchasedPackage.getPackageType().getId())
                             .orElseThrow(() -> new PatientPaymentException("Package Type not found"));
 
                     if (!(packageType.getPrice().compareTo(dto.getTotalPaid()) == -1)) {
