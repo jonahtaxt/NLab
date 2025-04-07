@@ -125,3 +125,16 @@ export type PurchasedPackageDTO = {
   remainingAppointments?: number;
   expirationDate?: string;
 }
+
+export type PatientPackagePaymentsDTO = {
+  id: number;
+  paymentMethodName: string;
+  cardPaymentTypeName: string;
+  paymentDate: Date;
+  totalPaid: string;
+}
+
+export type PatientPurchasedPackageDTO = {
+  purchasedPackage: PurchasedPackage;
+  patientPayments: PatientPackagePaymentsDTO[];
+}

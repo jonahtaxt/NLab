@@ -12,6 +12,8 @@ import { Pagination } from "@/app/ui/pagination";
 import CardTable from "@/components/ui/card-table";
 import { Loader2, RefreshCcw } from "lucide-react";
 import { showToast } from "@/lib/toaster-util";
+import PatientPaymentForm from "@/app/ui/patients/patient-payment-form";
+import PatientPackageDetail from "@/app/ui/patients/patient-package-detail";
 
 interface PatientDetailViewProps {
   patient: Patient;
@@ -25,6 +27,10 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   const [addPackageDialogOpen, setAddPackageDialogOpen] = useState(false);
   const [packageTypes, setPackageTypes] = useState<PackageTypeSelectDTO[]>([]);
   const [selectedPackageType, setSelectedPackageType] = useState<string>("");
+  const [addPatientPaymentDialogOpen, setAddPatientPaymentDialogOpen] = useState(false);
+  const [selectedPurchasedPackage, setSelectedPurchasedPackage] = useState<PurchasedPackage>();
+  const [patientPackageDetailDialogOpen, setPatientPackageDetailDialogOpen] = useState(false);
+  const [purchasedPackageId, setPurchasedPackageId] = useState<number | undefined>(undefined);
 
   // Packages table state
   const [currentPage, setCurrentPage] = useState(0);
@@ -116,13 +122,13 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
         </td>
         <td className="px-4 py-3 text-sm text-center">
           <div className="flex items-center justify-center space-x-2">
-            <Button variant="ghost" onClick={() => handleViewPackage(pkg.id)} className="h-8 w-8 p-1" title="Ver detalles">
+            <Button variant="ghost" onClick={() => handleViewPackage(pkg.id)} className="h-8 w-8 p-1" title="Ver pagos">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
             </Button>
-            <Button variant="ghost" onClick={() => handlePayment(pkg.id)} className="h-8 w-8 p-1" title="Registrar pago">
+            <Button variant="ghost" onClick={() => handlePayment(pkg)} className="h-8 w-8 p-1" title="Registrar pago">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
@@ -150,14 +156,13 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   };
 
   const handleViewPackage = (packageId: number) => {
-    // Implement view package details
-    console.log("View package:", packageId);
+    setPurchasedPackageId(packageId);
+    setPatientPackageDetailDialogOpen(true);
   };
 
-  const handlePayment = (packageId: number) => {
-    // Implement payment registration
-    console.log("Register payment for package:", packageId);
-    alert("Función de registro de pago no implementada");
+  const handlePayment = (purchasedPackage: PurchasedPackage) => {
+    setAddPatientPaymentDialogOpen(true);
+    setSelectedPurchasedPackage(purchasedPackage);
   };
 
   const handleBookAppointment = (packageId: number) => {
@@ -387,6 +392,41 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
             </Button>
             <Button onClick={handleAddPackage} data-save-package>
               Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={addPatientPaymentDialogOpen} onOpenChange={setAddPatientPaymentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrar pago</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <PatientPaymentForm purchasedPackage={selectedPurchasedPackage} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddPatientPaymentDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddPackage} data-save-package>
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={patientPackageDetailDialogOpen} onOpenChange={setPatientPackageDetailDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Detalles del Paquete</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <PatientPackageDetail packageId={purchasedPackageId} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPatientPackageDetailDialogOpen(false)}>
+              Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>

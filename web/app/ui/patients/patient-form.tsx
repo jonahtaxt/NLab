@@ -11,17 +11,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { clear } from 'console';
 
 interface PatientFormProps {
     patient?: Patient | null;
@@ -41,9 +39,9 @@ const formSchema = z.object({
     active: z.boolean().default(true),
 });
 
-const PatientForm = ({ 
-    patient, 
-    onClose, 
+const PatientForm = ({
+    patient,
+    onClose,
     onSuccess,
     onSubmitStart,
     onSubmitEnd,
@@ -65,13 +63,13 @@ const PatientForm = ({
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
         setServerError(null);
-        
+
         try {
             // Signal that submission is starting
             if (onSubmitStart) {
                 onSubmitStart();
             }
-            
+
             const patientDTO: PatientDTO = {
                 id: patient?.id || null,
                 firstName: values.firstName,
@@ -80,7 +78,7 @@ const PatientForm = ({
                 phone: values.phone,
                 active: values.active
             };
-            
+
             if (patient) {
                 await updatePatient(patientDTO);
                 showToast.success('Paciente actualizado correctamente');
@@ -88,22 +86,22 @@ const PatientForm = ({
                 await insertPatient(patientDTO);
                 showToast.success('Paciente creado correctamente');
             }
-            
+
             // Call the success callback to trigger refresh in parent
             if (onSuccess) {
                 onSuccess();
             }
-            
+
             onClose();
         } catch (error) {
             console.error('Error saving patient:', error);
-            
+
             if (error instanceof Error) {
                 setServerError(error.message || 'Error al guardar el paciente');
             } else {
                 setServerError('Error al guardar el paciente');
             }
-            
+
             showToast.error('Error al guardar el paciente');
         } finally {
             // Signal that submission has ended
@@ -121,7 +119,7 @@ const PatientForm = ({
                         {serverError}
                     </div>
                 )}
-                
+
                 <FormField
                     control={form.control}
                     name="firstName"
@@ -129,16 +127,16 @@ const PatientForm = ({
                         <FormItem>
                             <FormLabel>Nombre</FormLabel>
                             <FormControl>
-                                <Input 
-                                    {...field} 
-                                    disabled={isSubmitting} 
+                                <Input
+                                    {...field}
+                                    disabled={isSubmitting}
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                
+
                 <FormField
                     control={form.control}
                     name="lastName"
@@ -146,16 +144,16 @@ const PatientForm = ({
                         <FormItem>
                             <FormLabel>Apellido</FormLabel>
                             <FormControl>
-                                <Input 
-                                    {...field} 
-                                    disabled={isSubmitting} 
+                                <Input
+                                    {...field}
+                                    disabled={isSubmitting}
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                
+
                 <FormField
                     control={form.control}
                     name="email"
@@ -163,17 +161,17 @@ const PatientForm = ({
                         <FormItem>
                             <FormLabel>Correo Electrónico</FormLabel>
                             <FormControl>
-                                <Input 
-                                    {...field} 
+                                <Input
+                                    {...field}
                                     type="email"
-                                    disabled={isSubmitting} 
+                                    disabled={isSubmitting}
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                
+
                 <FormField
                     control={form.control}
                     name="phone"
@@ -181,17 +179,17 @@ const PatientForm = ({
                         <FormItem>
                             <FormLabel>Teléfono</FormLabel>
                             <FormControl>
-                                <Input 
-                                    {...field} 
+                                <Input
+                                    {...field}
                                     maxLength={10}
-                                    disabled={isSubmitting} 
+                                    disabled={isSubmitting}
                                 />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                
+
                 <FormField
                     control={form.control}
                     name="active"
@@ -210,17 +208,17 @@ const PatientForm = ({
                         </FormItem>
                     )}
                 />
-                
+
                 <DialogFooter>
-                    <Button 
-                        type="button" 
-                        variant="outline" 
+                    <Button
+                        type="button"
+                        variant="outline"
                         onClick={onClose}
                         disabled={isSubmitting}
                     >
                         Cancelar
                     </Button>
-                    <Button 
+                    <Button
                         type="submit"
                         disabled={isSubmitting}
                         className="min-w-24"

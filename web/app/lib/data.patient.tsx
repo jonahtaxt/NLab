@@ -1,5 +1,5 @@
 import { authDelete, authGet, authPost, authPut } from "@/app/lib/auth";
-import { PaginatedResponse, Patient, PatientDTO } from "@/app/lib/definitions";
+import { PaginatedResponse, Patient, PatientDTO, PatientPurchasedPackageDTO } from "@/app/lib/definitions";
 
 export async function fetchPaginatedPatients(
   page: number = 0,
@@ -10,20 +10,20 @@ export async function fetchPaginatedPatients(
   active?: boolean
 ): Promise<PaginatedResponse<Patient>> {
   try {
-      let url = `/api/patients?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`;
-      
-      if (searchTerm) {
-          url += `&searchTerm=${encodeURIComponent(searchTerm)}`;
-      }
-      
-      if (active !== undefined) {
-          url += `&active=${active}`;
-      }
-      
-      return await authGet<PaginatedResponse<Patient>>(url);
+    let url = `/api/patients?page=${page}&size=${size}&sortBy=${sortBy}&sortDirection=${sortDirection}`;
+
+    if (searchTerm) {
+      url += `&searchTerm=${encodeURIComponent(searchTerm)}`;
+    }
+
+    if (active !== undefined) {
+      url += `&active=${active}`;
+    }
+
+    return await authGet<PaginatedResponse<Patient>>(url);
   } catch (err) {
-      console.error('API error:', err);
-      throw new Error('Failed to fetch patient data');
+    console.error('API error:', err);
+    throw new Error('Failed to fetch patient data');
   }
 }
 
@@ -42,7 +42,7 @@ export async function insertPatient(patient: PatientDTO): Promise<Patient> {
     return result;
   } catch (err) {
     console.error('API error:', err);
-    
+
     // Check if the error has a specific message from the API
     if (err instanceof Error) {
       // Try to parse the error to see if it contains a JSON response
@@ -55,7 +55,7 @@ export async function insertPatient(patient: PatientDTO): Promise<Patient> {
         // If we can't parse the error, just use the original message
       }
     }
-    
+
     throw new Error('Error al insertar paciente');
   }
 }
@@ -66,7 +66,7 @@ export async function updatePatient(patient: PatientDTO): Promise<Patient> {
     return result;
   } catch (err) {
     console.error('API error:', err);
-    
+
     // Check if the error has a specific message from the API
     if (err instanceof Error) {
       // Try to parse the error to see if it contains a JSON response
@@ -79,7 +79,7 @@ export async function updatePatient(patient: PatientDTO): Promise<Patient> {
         // If we can't parse the error, just use the original message
       }
     }
-    
+
     throw new Error('Error al actualizar paciente');
   }
 }
@@ -102,3 +102,11 @@ export async function fetchActivePatients(): Promise<Patient[]> {
   }
 }
 
+export async function fetchPatientPackagePayments(packageId: number): Promise<PatientPurchasedPackageDTO> {
+  try {
+    return await authGet<PatientPurchasedPackageDTO>(`/api/purchased-packages/${packageId}`);
+  } catch (err) {
+    console.error('API error:', err);
+    throw new Error('Error al obtener pagos del paquete');
+  }
+}
