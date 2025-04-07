@@ -402,17 +402,10 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           <DialogHeader>
             <DialogTitle>Registrar pago</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <PatientPaymentForm purchasedPackage={selectedPurchasedPackage} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddPatientPaymentDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddPackage} data-save-package>
-              Guardar
-            </Button>
-          </DialogFooter>
+          <PatientPaymentForm
+            purchasedPackage={selectedPurchasedPackage}
+            closeDialog={() => setAddPatientPaymentDialogOpen(false)}
+            savePayment={() => setAddPatientPaymentDialogOpen(false)} />
         </DialogContent>
       </Dialog>
 

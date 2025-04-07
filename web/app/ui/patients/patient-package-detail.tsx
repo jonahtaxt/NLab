@@ -56,6 +56,8 @@ const patientPackageDetail = ({ packageId }: PatientPackageDetailProps) => {
     <>
       <p>{patientPackageDetail?.purchasedPackage.packageType.name}</p>
       <br />
+      <div>Costo: ${patientPackageDetail?.purchasedPackage.packageType.price}</div>
+      <br />
       <div>
         <CardTable
           cardTitle="Pagos"

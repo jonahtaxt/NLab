@@ -138,3 +138,20 @@ export type PatientPurchasedPackageDTO = {
   purchasedPackage: PurchasedPackage;
   patientPayments: PatientPackagePaymentsDTO[];
 }
+
+export type PatientPaymentDTO = {
+  id: number;
+  purchasedPackageId: number;
+  paymentMethodId: number;
+  cardPaymentTypeId: number | null;
+  totalPaid: string;
+}
+
+export type PatientPayment = {
+  id: number;
+  purchasedPackage: PurchasedPackage;
+  paymentMethod: PaymentMethod;
+  cardPaymentType: CardPaymentType;
+  paymentDate: Date;
+  totalPaid: string;
+}
