@@ -1,7 +1,7 @@
 import { fetchPatientPackagePayments } from "@/app/lib/data.patient";
 import { insertPatientPayment } from "@/app/lib/data.patient-payment";
 import { fetchAllCardPaymentTypes, fetchAllPaymentMethods } from "@/app/lib/data.settings";
-import { CardPaymentType, PatientPurchasedPackageDTO, PaymentMethod, PurchasedPackage } from "@/app/lib/definitions";
+import { CardPaymentType, PatientPaymentDTO, PaymentMethod, PurchasedPackage } from "@/app/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -71,9 +71,8 @@ const PatientPaymentForm = ({
             setPaymentMethods(pMethods);
 
             if(pPatientPayments) {
-                pPatientPayments.purchasedPackage.packageType.price
-                setPackagePaidTotal(parseFloat(pPatientPayments.packagePaidTotal));
-                setPackagePrice(parseFloat(pPatientPayments.purchasedPackage.packageType.price));
+                setPackagePaidTotal(parseFloat(pPatientPayments.packagePaidTotal || "0"));
+                setPackagePrice(parseFloat(pPatientPayments.purchasedPackage.packageType.price || "0"));
             }
         } catch (err) {
             console.error("Error loading payment methods:", err);
@@ -87,10 +86,6 @@ const PatientPaymentForm = ({
         loadPaymentMethodData();
     }, []);
 
-    // useEffect(() => {
-    //     const regularPayment = paymentMethods.find(method => method.name === "Pago Regular");
-    //     if(values.paymentMethod === "2" ** regularPayment)
-
     // Initialize the form with react-hook-form
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -101,9 +96,31 @@ const PatientPaymentForm = ({
         }
     });
 
+    // Watch for changes to payment method
+    const paymentMethod = form.watch("paymentMethod");
+
+    // Auto-select "Pago Regular" when "Débito" is selected
+    useEffect(() => {
+        // Find the "Pago Regular" card payment type
+        const pagoRegularType = cardPaymentTypes.find(type => type.name === "Pago Regular");
+        
+        // If the payment method is "Débito" (ID: 2) and we found "Pago Regular"
+        if (paymentMethod === '2' && pagoRegularType) {
+            form.setValue("cardPaymentType", pagoRegularType.id.toString());
+        } else if (paymentMethod !== '2' && paymentMethod !== '3') {
+            // Clear card payment type if not credit or debit
+            form.setValue("cardPaymentType", "");
+        }
+    }, [paymentMethod, cardPaymentTypes, form]);
+
     // Helper function to check if credit card payment method is selected
     const isCreditCardSelected = () => {
-        return form.watch("paymentMethod") === "3";
+        return paymentMethod === "3";
+    };
+
+    // Helper function to check if debit card payment method is selected
+    const isDebitCardSelected = () => {
+        return paymentMethod === "2";
     };
 
     // Handle form submission
@@ -122,7 +139,16 @@ const PatientPaymentForm = ({
         if (isCreditCardSelected() && !values.cardPaymentType) {
             form.setError("cardPaymentType", {
                 type: "manual",
-                message: "El tipo de pago con tarjeta es requerido"
+                message: "El número de pagos con tarjeta de crédito es requerido"
+            });
+            return;
+        }
+
+        // Validate cardPaymentType when debit card is selected
+        if (isDebitCardSelected() && !values.cardPaymentType) {
+            form.setError("cardPaymentType", {
+                type: "manual",
+                message: "El tipo de pago con tarjeta es requerido para pagos con débito"
             });
             return;
         }
@@ -149,7 +175,7 @@ const PatientPaymentForm = ({
                 throw new Error('No se encontró el paquete para procesar el pago');
             }
 
-            const patientPaymentDTO = {
+            const patientPaymentDTO: PatientPaymentDTO = {
                 id: 0,
                 purchasedPackageId: purchasedPackage.id,
                 paymentMethodId: parseInt(values.paymentMethod),
@@ -177,12 +203,12 @@ const PatientPaymentForm = ({
 
     return (
         <>
-        <div>
-            <span>Costo del paquete: {packagePrice}</span>
-        </div>
-        <div>
-            <span>Total pagado: {packagePaidTotal}</span>
-        </div>
+            <div>
+                <span>Costo del paquete: {packagePrice}</span>
+            </div>
+            <div>
+                <span>Total pagado: {packagePaidTotal}</span>
+            </div>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleAddPayment)} className="space-y-4">
                     {serverError && (
@@ -227,7 +253,7 @@ const PatientPaymentForm = ({
                         )}
                     />
 
-                    {/* Card Payment Type field - only required for credit card payments */}
+                    {/* Card Payment Type field - enabled for credit and debit cards */}
                     <FormField
                         control={form.control}
                         name="cardPaymentType"
@@ -236,9 +262,11 @@ const PatientPaymentForm = ({
                                 <FormLabel>Pagos Diferidos</FormLabel>
                                 <FormControl>
                                     <Select
-                                        disabled={!isCreditCardSelected() || isSubmitting}
+                                        disabled={!isCreditCardSelected() && !isDebitCardSelected() || isSubmitting}
                                         onValueChange={field.onChange}
                                         value={field.value}
+                                        // If Débito is selected (ID: 2), show the component but disable user interaction
+                                        {...(isDebitCardSelected() ? { 'data-readonly': 'true' } : {})}
                                     >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Selecciona pagos diferidos" />
@@ -250,6 +278,8 @@ const PatientPaymentForm = ({
                                                     <SelectItem
                                                         key={cardPaymentType.id}
                                                         value={cardPaymentType.id.toString()}
+                                                        // Disable all options except "Pago Regular" when debit card is selected
+                                                        disabled={isDebitCardSelected() && cardPaymentType.name !== "Pago Regular"}
                                                     >
                                                         {cardPaymentType.name}
                                                     </SelectItem>
@@ -259,6 +289,11 @@ const PatientPaymentForm = ({
                                     </Select>
                                 </FormControl>
                                 <FormMessage />
+                                {isDebitCardSelected() && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        La opción "Pago Regular" es seleccionada automáticamente para pagos con débito.
+                                    </p>
+                                )}
                             </FormItem>
                         )}
                     />
