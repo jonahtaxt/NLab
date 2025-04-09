@@ -1,5 +1,6 @@
 package com.effisoft.nlab.appointmentapi.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -8,17 +9,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import com.effisoft.nlab.appointmentapi.dto.PatientPaymentDTO;
+import com.effisoft.nlab.appointmentapi.dto.PatientPurchasedPackageDTO;
 import com.effisoft.nlab.appointmentapi.entity.CardPaymentType;
-import com.effisoft.nlab.appointmentapi.entity.PackageType;
 import com.effisoft.nlab.appointmentapi.entity.PatientPayment;
 import com.effisoft.nlab.appointmentapi.entity.PaymentMethod;
 import com.effisoft.nlab.appointmentapi.entity.PurchasedPackage;
 import com.effisoft.nlab.appointmentapi.exception.PatientPaymentException;
 import com.effisoft.nlab.appointmentapi.repository.CardPaymentTypeRepository;
-import com.effisoft.nlab.appointmentapi.repository.PackageTypeRepository;
 import com.effisoft.nlab.appointmentapi.repository.PatientPaymentRepository;
 import com.effisoft.nlab.appointmentapi.repository.PaymentMethodRepository;
-import com.effisoft.nlab.appointmentapi.repository.PurchasedPackageRepository;
 import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
 
 import jakarta.validation.Valid;
@@ -29,10 +28,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PatientPaymentService {
     private final PatientPaymentRepository patientPaymentRepository;
-    private final PurchasedPackageRepository purchasedPackageRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final CardPaymentTypeRepository cardPaymentTypeRepository;
-    private final PackageTypeRepository packageTypeRepository;
+    private final PurchasedPackageService purchasedPackageService;
 
     @Transactional
     public PatientPayment createPatientPayment(@Valid PatientPaymentDTO dto) {
@@ -41,9 +39,14 @@ public class PatientPaymentService {
                     PatientPayment patientPayment = new PatientPayment();
                     CardPaymentType cardPaymentType = null;
 
-                    // Set related entities
-                    PurchasedPackage purchasedPackage = purchasedPackageRepository.findById(dto.getPurchasedPackageId())
-                            .orElseThrow(() -> new PatientPaymentException("Purchased Package not found"));
+                    PatientPurchasedPackageDTO purchasedPackageDTO = purchasedPackageService
+                            .getPatientPurchasedPackageByPackageId(dto.getPurchasedPackageId());
+
+                    if(purchasedPackageDTO == null) {
+                        throw new PatientPaymentException("Purchased Package not found");
+                    }
+
+                    PurchasedPackage purchasedPackage = purchasedPackageDTO.getPurchasedPackage();
 
                     PaymentMethod paymentMethod = paymentMethodRepository.findById(dto.getPaymentMethodId())
                             .orElseThrow(() -> new PatientPaymentException("Payment Method not found"));
@@ -53,12 +56,10 @@ public class PatientPaymentService {
                                 .orElseThrow(() -> new PatientPaymentException("Card Payment Type not found"));
                     }
 
-                    PackageType packageType = packageTypeRepository.findById(purchasedPackage.getPackageType().getId())
-                            .orElseThrow(() -> new PatientPaymentException("Package Type not found"));
+                    BigDecimal packageTotalPaid = purchasedPackageDTO.getPackagePaidTotal().add(dto.getTotalPaid());
 
-                    if (!(packageType.getPrice().compareTo(dto.getTotalPaid()) == -1)) {
-                        purchasedPackage.setPaidInFull(true);
-                        purchasedPackageRepository.save(purchasedPackage);
+                    if(packageTotalPaid.compareTo(purchasedPackage.getPackageType().getPrice()) == 1) {
+                        throw new PatientPaymentException("El pago excede el total del paquete");
                     }
 
                     patientPayment.setPurchasedPackage(purchasedPackage);

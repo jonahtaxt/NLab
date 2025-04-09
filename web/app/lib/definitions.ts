@@ -137,6 +137,7 @@ export type PatientPackagePaymentsDTO = {
 export type PatientPurchasedPackageDTO = {
   purchasedPackage: PurchasedPackage;
   patientPayments: PatientPackagePaymentsDTO[];
+  packagePaidTotal: string;
 }
 
 export type PatientPaymentDTO = {
