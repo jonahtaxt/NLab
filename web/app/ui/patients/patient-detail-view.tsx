@@ -405,7 +405,10 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           <PatientPaymentForm
             purchasedPackage={selectedPurchasedPackage}
             closeDialog={() => setAddPatientPaymentDialogOpen(false)}
-            savePayment={() => setAddPatientPaymentDialogOpen(false)} />
+            savePayment={() => setAddPatientPaymentDialogOpen(false)}
+            onPaymentSuccess={() => {
+              loadPackages(currentPage);
+            }} />
         </DialogContent>
       </Dialog>
 

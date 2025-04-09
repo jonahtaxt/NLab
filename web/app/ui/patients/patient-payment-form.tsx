@@ -18,12 +18,14 @@ interface PatientPaymentFormProps {
     purchasedPackage: PurchasedPackage | undefined;
     closeDialog: () => void;
     savePayment: () => void;
+    onPaymentSuccess?: () => void;
 }
 
 const PatientPaymentForm = ({
     purchasedPackage,
     closeDialog,
-    savePayment
+    savePayment,
+    onPaymentSuccess
 }: PatientPaymentFormProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -70,7 +72,7 @@ const PatientPaymentForm = ({
             setCardPaymentTypes(cTypes);
             setPaymentMethods(pMethods);
 
-            if(pPatientPayments) {
+            if (pPatientPayments) {
                 setPackagePaidTotal(parseFloat(pPatientPayments.packagePaidTotal || "0"));
                 setPackagePrice(parseFloat(pPatientPayments.purchasedPackage.packageType.price || "0"));
             }
@@ -103,7 +105,7 @@ const PatientPaymentForm = ({
     useEffect(() => {
         // Find the "Pago Regular" card payment type
         const pagoRegularType = cardPaymentTypes.find(type => type.name === "Pago Regular");
-        
+
         // If the payment method is "Débito" (ID: 2) and we found "Pago Regular"
         if (paymentMethod === '2' && pagoRegularType) {
             form.setValue("cardPaymentType", pagoRegularType.id.toString());
@@ -127,7 +129,7 @@ const PatientPaymentForm = ({
     const handleAddPayment = async (values: z.infer<typeof formSchema>) => {
         setServerError(null);
 
-        if(values.paymentMethod === "") {
+        if (values.paymentMethod === "") {
             form.setError("paymentMethod", {
                 type: "manual",
                 message: "El método de pago es requerido"
@@ -187,6 +189,11 @@ const PatientPaymentForm = ({
             await insertPatientPayment(patientPaymentDTO);
             showToast.success("Pago registrado exitosamente");
             savePayment();
+
+            if (onPaymentSuccess) {
+                onPaymentSuccess();
+            }
+
             closeDialog();
         } catch (error) {
             console.error('Error saving payment:', error);
