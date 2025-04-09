@@ -10,11 +10,13 @@ import org.springframework.validation.annotation.Validated;
 
 import com.effisoft.nlab.appointmentapi.dto.PatientPaymentDTO;
 import com.effisoft.nlab.appointmentapi.dto.PatientPurchasedPackageDTO;
+import com.effisoft.nlab.appointmentapi.dto.PurchasedPackageDTO;
 import com.effisoft.nlab.appointmentapi.entity.CardPaymentType;
 import com.effisoft.nlab.appointmentapi.entity.PatientPayment;
 import com.effisoft.nlab.appointmentapi.entity.PaymentMethod;
 import com.effisoft.nlab.appointmentapi.entity.PurchasedPackage;
 import com.effisoft.nlab.appointmentapi.exception.PatientPaymentException;
+import com.effisoft.nlab.appointmentapi.mapper.PurchasedPackageMapper;
 import com.effisoft.nlab.appointmentapi.repository.CardPaymentTypeRepository;
 import com.effisoft.nlab.appointmentapi.repository.PatientPaymentRepository;
 import com.effisoft.nlab.appointmentapi.repository.PaymentMethodRepository;
@@ -31,6 +33,7 @@ public class PatientPaymentService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final CardPaymentTypeRepository cardPaymentTypeRepository;
     private final PurchasedPackageService purchasedPackageService;
+    private final PurchasedPackageMapper purchasedPackageMapper;
 
     @Transactional
     public PatientPayment createPatientPayment(@Valid PatientPaymentDTO dto) {
@@ -39,14 +42,14 @@ public class PatientPaymentService {
                     PatientPayment patientPayment = new PatientPayment();
                     CardPaymentType cardPaymentType = null;
 
-                    PatientPurchasedPackageDTO purchasedPackageDTO = purchasedPackageService
+                    PatientPurchasedPackageDTO patientPurchasedPackageDTO = purchasedPackageService
                             .getPatientPurchasedPackageByPackageId(dto.getPurchasedPackageId());
 
-                    if(purchasedPackageDTO == null) {
+                    if(patientPurchasedPackageDTO == null) {
                         throw new PatientPaymentException("Purchased Package not found");
                     }
 
-                    PurchasedPackage purchasedPackage = purchasedPackageDTO.getPurchasedPackage();
+                    PurchasedPackage purchasedPackage = patientPurchasedPackageDTO.getPurchasedPackage();
 
                     PaymentMethod paymentMethod = paymentMethodRepository.findById(dto.getPaymentMethodId())
                             .orElseThrow(() -> new PatientPaymentException("Payment Method not found"));
@@ -56,10 +59,16 @@ public class PatientPaymentService {
                                 .orElseThrow(() -> new PatientPaymentException("Card Payment Type not found"));
                     }
 
-                    BigDecimal packageTotalPaid = purchasedPackageDTO.getPackagePaidTotal().add(dto.getTotalPaid());
+                    BigDecimal packageTotalPaid = patientPurchasedPackageDTO.getPackagePaidTotal().add(dto.getTotalPaid());
 
                     if(packageTotalPaid.compareTo(purchasedPackage.getPackageType().getPrice()) == 1) {
                         throw new PatientPaymentException("El pago excede el total del paquete");
+                    } else if (packageTotalPaid.compareTo(purchasedPackage.getPackageType().getPrice()) == 0) {
+                        purchasedPackage.setPaidInFull(true);
+                        PurchasedPackageDTO purchasedPackageDTO = purchasedPackageMapper.toDto(purchasedPackage);
+                        purchasedPackageDTO.setPatientId(purchasedPackage.getPatient().getId());
+                        purchasedPackageDTO.setPackageTypeId(purchasedPackage.getPackageType().getId());
+                        purchasedPackageService.updatePurchasedPackage(purchasedPackageDTO.getId(), purchasedPackageDTO);
                     }
 
                     patientPayment.setPurchasedPackage(purchasedPackage);

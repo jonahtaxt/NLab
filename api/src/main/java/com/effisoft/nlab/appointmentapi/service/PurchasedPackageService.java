@@ -87,6 +87,7 @@ public class PurchasedPackageService {
                                         // Only allow updating certain fields
                                         existingPackage.setRemainingAppointments(dto.getRemainingAppointments());
                                         existingPackage.setExpirationDate(dto.getExpirationDate());
+                                        existingPackage.setPaidInFull(dto.getPaidInFull());
 
                                         return purchasedPackageRepository.save(existingPackage);
                                 },

@@ -20,4 +20,6 @@ public class PurchasedPackageDTO {
     private Integer remainingAppointments;
 
     private LocalDateTime expirationDate;
+
+    private Boolean paidInFull;
 }
