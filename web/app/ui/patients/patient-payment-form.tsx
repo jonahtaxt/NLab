@@ -32,6 +32,7 @@ const PatientPaymentForm = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
     const [packagePaidTotal, setPackagePaidTotal] = useState<number>(0);
+    const [packagePrice, setPackagePrice] = useState<number>(0);
 
     // Define our form schema using Zod
     const formSchema = z.object({
@@ -70,7 +71,9 @@ const PatientPaymentForm = ({
             setPaymentMethods(pMethods);
 
             if(pPatientPayments) {
+                pPatientPayments.purchasedPackage.packageType.price
                 setPackagePaidTotal(parseFloat(pPatientPayments.packagePaidTotal));
+                setPackagePrice(parseFloat(pPatientPayments.purchasedPackage.packageType.price));
             }
         } catch (err) {
             console.error("Error loading payment methods:", err);
@@ -83,6 +86,10 @@ const PatientPaymentForm = ({
     useEffect(() => {
         loadPaymentMethodData();
     }, []);
+
+    // useEffect(() => {
+    //     const regularPayment = paymentMethods.find(method => method.name === "Pago Regular");
+    //     if(values.paymentMethod === "2" ** regularPayment)
 
     // Initialize the form with react-hook-form
     const form = useForm<z.infer<typeof formSchema>>({
@@ -122,7 +129,7 @@ const PatientPaymentForm = ({
 
         let packagePrice = purchasedPackage?.packageType?.price;
 
-        if (!packagePrice) {
+        if (packagePrice) {
             let totalPaidFloat = parseFloat(values.totalPaid);
             if (packagePaidTotal > 0) {
                 totalPaidFloat += packagePaidTotal;
@@ -170,6 +177,12 @@ const PatientPaymentForm = ({
 
     return (
         <>
+        <div>
+            <span>Costo del paquete: {packagePrice}</span>
+        </div>
+        <div>
+            <span>Total pagado: {packagePaidTotal}</span>
+        </div>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleAddPayment)} className="space-y-4">
                     {serverError && (
