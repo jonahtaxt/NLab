@@ -59,6 +59,12 @@ public class AppointmentService {
                         throw new AppointmentServiceException("Appointment time must be in the future");
                     }
 
+                    // Check if the appointment time is already booked
+                    if (appointmentRepository.existsByNutritionistIdAndAppointmentDateTime(
+                            dto.getNutritionistId(), dto.getAppointmentDateTime())) {
+                        throw new AppointmentServiceException("Appointment time is already booked");
+                    }
+
                     // Create new appointment
                     Appointment appointment = new Appointment();
                     appointment.setPurchasedPackage(purchasedPackage);

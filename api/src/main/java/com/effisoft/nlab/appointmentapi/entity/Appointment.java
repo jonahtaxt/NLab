@@ -34,7 +34,6 @@ public class Appointment {
     @Column(nullable = false)
     private String status;
 
-    @Size(max = 500, message = "Notes must not exceed 500 characters")
     private String notes;
 
     @Column(nullable = false)

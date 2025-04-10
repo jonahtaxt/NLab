@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-//TODO: Implement DTOs
-
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor

@@ -7,6 +7,8 @@ import com.effisoft.nlab.appointmentapi.service.NutritionistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -73,5 +75,12 @@ public class NutritionistController {
     public ResponseEntity<Void> deactivateNutritionist(@PathVariable Integer id) {
         nutritionistService.deactivateNutritionist(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    public ResponseEntity<List<Nutritionist>> getActiveNutritionists() {
+        List<Nutritionist> activeNutritionists = nutritionistService.getAllActiveNutritionists();
+        return ResponseEntity.ok(activeNutritionists);
     }
 }

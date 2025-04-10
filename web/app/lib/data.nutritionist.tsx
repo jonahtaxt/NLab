@@ -75,11 +75,11 @@ export async function updateNutritionist(nutritionist: NutritionistDTO): Promise
   }
 }
 
-export async function deletePatient(id: number): Promise<void> {
+export async function fetchActiveNutritionists(): Promise<Nutritionist[]> {
   try {
-    await authDelete(`/api/nutritionists/${id}`);
+    return await authGet<Nutritionist[]>('/api/nutritionists/active');
   } catch (err) {
     console.error('API error:', err);
-    throw new Error('Error al eliminar paciente');
+    throw new Error('Error al obtener nutriólogos activos');
   }
 }

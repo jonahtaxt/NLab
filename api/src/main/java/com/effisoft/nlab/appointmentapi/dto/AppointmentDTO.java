@@ -23,6 +23,5 @@ public class AppointmentDTO {
             message = "Invalid status. Must be one of: SCHEDULED, COMPLETED, CANCELLED, RESCHEDULED, NO_SHOW")
     private String status;
 
-    @Size(max = 500, message = "Notes must not exceed 500 characters")
     private String notes;
 }

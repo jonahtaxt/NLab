@@ -156,3 +156,23 @@ export type PatientPayment = {
   paymentDate: Date;
   totalPaid: string;
 }
+
+export type Appointment = {
+  id: number;
+  purchasedPackage: PurchasedPackage;
+  nutritionist: Nutritionist;
+  appointmentDateTime: Date;
+  status: string;
+  notes: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type AppointmentDTO = {
+  id: number;
+  purchasedPackageId: number;
+  nutritionistId: number;
+  appointmentDateTime: Date;
+  status: string;
+  notes: string;
+}
