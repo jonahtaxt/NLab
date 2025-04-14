@@ -23,14 +23,13 @@ public class PatientPurchasedPackageDTO {
     }
 
     public void setPatientPayments(List<PatientPackagePaymentsDTO> patientPayments) {
+        this.packagePaidTotal = BigDecimal.ZERO;
         this.patientPayments = patientPayments;
 
-        if(this.patientPayments != null && !this.patientPayments.isEmpty()) {
+        if (this.patientPayments != null && !this.patientPayments.isEmpty()) {
             this.packagePaidTotal = this.patientPayments.stream()
                     .map(PatientPackagePaymentsDTO::getTotalPaid)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-        } else {
-            this.packagePaidTotal = BigDecimal.ZERO;
         }
     }
 

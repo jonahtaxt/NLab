@@ -167,7 +167,11 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   };
 
   const handleBookAppointment = (purchasedPackage: PurchasedPackage) => {
-    setSelectedPurchasedPackage(purchasedPackage)
+    setSelectedPurchasedPackage(purchasedPackage);
+    if (purchasedPackage.remainingAppointments <= 0) {
+      showToast.error("No hay citas restantes en este paquete");
+      return;
+    }
     setAddAppointmentDialogOpen(true);
   };
 

@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -135,31 +136,37 @@ public class PurchasedPackageService {
                                         if (!patientPayments.isEmpty()) {
                                                 patientPurchasedPackage.setPatientPayments(patientPayments.stream()
                                                                 .map(payment -> {
-                                                                        PatientPackagePaymentsDTO paymentDTO = new PatientPackagePaymentsDTO();
-                                                                        paymentDTO.setPaymentDate(
-                                                                                        payment.getPaymentDate());
-                                                                        paymentDTO.setTotalPaid(payment.getTotalPaid());
-                                                                        paymentDTO.setPaymentMethodName(
-                                                                                        payment.getPaymentMethod()
-                                                                                                        .getName());
-                                                                        paymentDTO.setCardPaymentTypeName(
-                                                                                        payment.getCardPaymentType() != null
-                                                                                                        ? payment.getCardPaymentType()
-                                                                                                                        .getName()
-                                                                                                        : null);
-                                                                        paymentDTO.setPurchasedPackageId(
-                                                                                        payment.getPurchasedPackage()
-                                                                                                        .getId());
-                                                                        paymentDTO.setId(payment.getId());
-                                                                        paymentDTO.setTotalPaid(payment.getTotalPaid());
-                                                                        return paymentDTO;
+                                                                        return instantiatePaymentDTO(payment);
                                                                 })
                                                                 .toList());
+                                        } else {
+                                                patientPurchasedPackage.setPatientPayments(new ArrayList<>());
                                         }
 
                                         return patientPurchasedPackage;
                                 },
                                 PurchasedPackageServiceException::new,
                                 "Get Patient Purchased Package by Package ID");
+        }
+
+        private PatientPackagePaymentsDTO instantiatePaymentDTO(PatientPayment payment) {
+                PatientPackagePaymentsDTO paymentDTO = new PatientPackagePaymentsDTO();
+                paymentDTO.setPaymentDate(
+                                payment.getPaymentDate());
+                paymentDTO.setTotalPaid(payment.getTotalPaid());
+                paymentDTO.setPaymentMethodName(
+                                payment.getPaymentMethod()
+                                                .getName());
+                paymentDTO.setCardPaymentTypeName(
+                                payment.getCardPaymentType() != null
+                                                ? payment.getCardPaymentType()
+                                                                .getName()
+                                                : null);
+                paymentDTO.setPurchasedPackageId(
+                                payment.getPurchasedPackage()
+                                                .getId());
+                paymentDTO.setId(payment.getId());
+                paymentDTO.setTotalPaid(payment.getTotalPaid());
+                return paymentDTO;
         }
 }

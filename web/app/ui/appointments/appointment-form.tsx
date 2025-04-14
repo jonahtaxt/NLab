@@ -1,4 +1,4 @@
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import { fetchActiveNutritionists } from "@/app/lib/data.nutritionist";
 import { DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { insertAppointment } from "@/app/lib/data.appointment";
 
 interface AppointmentFormProps {
     purchasedPackage: PurchasedPackage | undefined;
@@ -90,8 +91,18 @@ const AppointmentForm = ({
 
         try {
             setIsSubmitting(true);
-            // TODO: Implement appointment creation
-            console.log("Creating appointment with values:", values);
+            
+            // Format the date to ISO string for the backend
+            const appointmentDTO = {
+                id: 0,
+                purchasedPackageId: values.purchasedPackageId,
+                status: "SCHEDULED",
+                nutritionistId: parseInt(values.nutritionistId),
+                appointmentDateTime: values.appointmentDateTime,
+                notes: ""
+            };
+
+            await insertAppointment(appointmentDTO);
             saveAppointment();
             closeDialog();
         } catch (error) {
@@ -180,6 +191,7 @@ const AppointmentForm = ({
                                     </SelectContent>
                                 </Select>
                             </FormControl>
+                            <FormMessage />
                         </FormItem>
 
                     )}
@@ -233,6 +245,7 @@ const AppointmentForm = ({
                                     </div>
                                 </div>
                             </div>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
