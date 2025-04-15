@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[Appointment] (
     [Status]              NVARCHAR (20)  NOT NULL,
     [Notes]               NVARCHAR (MAX) NULL,
     [CreatedAt]           DATETIME2 (7)  DEFAULT (getdate()) NULL,
+    [UpdatedAt]           DATETIME2 (7)  DEFAULT (getdate()) NULL,
     PRIMARY KEY CLUSTERED ([Id] ASC),
     FOREIGN KEY ([NutritionistID]) REFERENCES [dbo].[Nutritionist] ([Id]),
     FOREIGN KEY ([PurchasedPackageID]) REFERENCES [dbo].[PurchasedPackage] ([Id])

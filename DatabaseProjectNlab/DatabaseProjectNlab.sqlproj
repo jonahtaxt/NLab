@@ -8,6 +8,7 @@
     <ModelCollation>1033, CI</ModelCollation>
   </PropertyGroup>
   <ItemGroup>
+    <Folder Include="dbo\Views" />
     <Folder Include="Scripts" />
     <Folder Include="Scripts\PostDeployment" />
   </ItemGroup>
