@@ -3,15 +3,20 @@ package com.effisoft.nlab.appointmentapi.service;
 import com.effisoft.nlab.appointmentapi.dto.AppointmentDTO;
 import com.effisoft.nlab.appointmentapi.entity.Appointment;
 import com.effisoft.nlab.appointmentapi.entity.Nutritionist;
+import com.effisoft.nlab.appointmentapi.entity.PatientAppointmentView;
 import com.effisoft.nlab.appointmentapi.entity.PurchasedPackage;
 import com.effisoft.nlab.appointmentapi.exception.AppointmentServiceException;
 import com.effisoft.nlab.appointmentapi.repository.AppointmentRepository;
 import com.effisoft.nlab.appointmentapi.repository.NutritionistRepository;
 import com.effisoft.nlab.appointmentapi.repository.PurchasedPackageRepository;
+import com.effisoft.nlab.appointmentapi.repository.PatientAppointmentViewRepository;
 import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -27,6 +32,7 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final PurchasedPackageRepository purchasedPackageRepository;
     private final NutritionistRepository nutritionistRepository;
+    private final PatientAppointmentViewRepository patientAppointmentViewRepository;
 
     private static final Set<String> VALID_STATUSES = Set.of(
             "SCHEDULED", "COMPLETED", "CANCELLED", "RESCHEDULED", "NO_SHOW");
@@ -194,6 +200,11 @@ public class AppointmentService {
                 },
                 AppointmentServiceException::new,
                 "Get Upcoming Appointments");
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PatientAppointmentView> getPatientAppointments(Pageable pageable, Integer patientId) {
+        return patientAppointmentViewRepository.findByPatientId(patientId, pageable);
     }
 
     private void validateStatusTransition(String currentStatus, String newStatus) {
