@@ -176,3 +176,16 @@ export type AppointmentDTO = {
   status: string;
   notes: string;
 }
+
+export type PatientAppointmentView = {
+  appointmentId: number;
+  patientId: number;
+  nutritionistId: number;
+  nutritionistName: string;
+  packageName: string;
+  appointmentDate: Date;
+  appointmentTime: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

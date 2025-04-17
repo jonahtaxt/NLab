@@ -40,4 +40,4 @@ public class PatientAppointmentView {
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
-} 
+}
