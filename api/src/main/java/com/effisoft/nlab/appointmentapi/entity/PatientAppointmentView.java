@@ -8,36 +8,36 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "vPatientAppointments")
+@Table(name = "v_patient_appointments", schema = "nlab")
 public class PatientAppointmentView {
     @Id
-    @Column(name = "AppointmentId")
+    @Column(name = "appointment_id")
     private Integer appointmentId;
 
-    @Column(name = "PatientId")
+    @Column(name = "patient_id")
     private Integer patientId;
 
-    @Column(name = "NutritionistId")
+    @Column(name = "nutritionist_id")
     private Integer nutritionistId;
 
-    @Column(name = "NutritionistName")
+    @Column(name = "nutritionist_name")
     private String nutritionistName;
 
-    @Column(name = "PackageName")
+    @Column(name = "package_name")
     private String packageName;
 
-    @Column(name = "AppointmentDate")
+    @Column(name = "appointment_date")
     private LocalDate appointmentDate;
 
-    @Column(name = "AppointmentTime")
+    @Column(name = "appointment_time")
     private LocalTime appointmentTime;
 
-    @Column(name = "Status")
+    @Column(name = "status")
     private String status;
 
-    @Column(name = "CreatedAt")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "UpdatedAt")
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
