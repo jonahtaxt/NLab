@@ -29,7 +29,7 @@ public class Appointment {
     private LocalDateTime appointmentDateTime;
 
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "^(SCHEDULED|COMPLETED|CANCELLED|RESCHEDULED|NO_SHOW)$", 
+    @Pattern(regexp = "^(AGENDADA|COMPLETADA|CANCELADA|REAGENDADA|NO_ASISTENCIA)$", 
             message = "Invalid appointment status")
     @Column(nullable = false)
     private String status;

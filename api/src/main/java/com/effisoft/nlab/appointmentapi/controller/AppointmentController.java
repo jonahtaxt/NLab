@@ -31,8 +31,8 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
     public ResponseEntity<Appointment> scheduleAppointment(
             @Valid @RequestBody AppointmentDTO appointmentDTO) {
-        Appointment scheduledAppointment = appointmentService.scheduleAppointment(appointmentDTO);
-        return new ResponseEntity<>(scheduledAppointment, HttpStatus.CREATED);
+        Appointment AGENDADAAppointment = appointmentService.scheduleAppointment(appointmentDTO);
+        return new ResponseEntity<>(AGENDADAAppointment, HttpStatus.CREATED);
     }
 
     @GetMapping("/nutritionist/{nutritionistId}")

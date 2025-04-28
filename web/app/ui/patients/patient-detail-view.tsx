@@ -10,12 +10,12 @@ import { fetchSelectPackageTypes } from "@/app/lib/data.package-type";
 import { fetchPatientPackages, createPurchasedPackage } from "@/app/lib/data.purchased-package";
 import { Pagination } from "@/app/ui/pagination";
 import CardTable from "@/components/ui/card-table";
-import { Loader2, RefreshCcw } from "lucide-react";
+import { RefreshCcw } from "lucide-react";
 import { showToast } from "@/lib/toaster-util";
 import PatientPaymentForm from "@/app/ui/patients/patient-payment-form";
 import PatientPackageDetail from "@/app/ui/patients/patient-package-detail";
 import AppointmentForm from "@/app/ui/appointments/appointment-form";
-import { fetchPaginatedPatientAppointments } from "@/app/lib/data.appointment";
+import PatientAppointments from "@/app/ui/patients/patient-appointments";
 
 interface PatientDetailViewProps {
   patient: Patient;
@@ -64,42 +64,9 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
     }
   };
 
-  const [isLoadingPatientAppointments, setIsLoadingPatientAppointments] = useState(true);
-  const [errorPatientAppointments, setErrorPatientAppointments] = useState<string | null>(null);
-  const [currentPatientAppointmentsPage, setCurrentPatientAppointmentsPage] = useState(0);
-  const [patientAppointmentsPageSize, setPatientAppointmentsPageSize] = useState(5);
-  const [patientAppointmentsData, setPatientAppointmentsData] = useState<PaginatedResponse<PatientAppointmentView>>({
-    content: [],
-    pageNumber: 0,
-    pageSize: 5,
-    totalElements: 0,
-    totalPages: 0,
-    first: true,
-    last: true
-  });
-
-  const loadPatientAppointments = async (page = currentPatientAppointmentsPage) => {
-    try {
-      setIsLoadingPatientAppointments(true);
-      setErrorPatientAppointments(null);
-      const data = await fetchPaginatedPatientAppointments(patient.id, page, patientAppointmentsPageSize);
-      setPatientAppointmentsData(data);
-    } catch (err) {
-      console.error("Error loading patient appointments:", err);
-      setErrorPatientAppointments("Error al cargar las citas. Intente nuevamente.");
-    } finally {
-      setIsLoadingPatientAppointments(false);
-    }
-  };
-
-  // Load packages data when component mounts or dependencies change
   useEffect(() => {
     loadPackages();
   }, [patient.id, currentPage, pageSize]);
-
-  useEffect(() => {
-    loadPatientAppointments();
-  }, [patient.id, currentPatientAppointmentsPage, patientAppointmentsPageSize]);
 
   // Handle pagination changes
   const handlePageChange = (page: number) => {
@@ -189,32 +156,6 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
     ));
   };
 
-  const renderPatientAppointmentsRows = () => {
-    if (patientAppointmentsData.content.length === 0) {
-      return null;
-    }
-
-    return patientAppointmentsData.content.map((appointment) => (
-      <tr key={appointment.appointmentId} className="border-b hover:bg-gray-50">
-        <td className="px-4 py-3 text-sm">
-          {appointment.nutritionistName}
-        </td>
-        <td className="px-4 py-3 text-sm">
-          {appointment.packageName} 
-        </td>
-        <td className="px-4 py-3 text-sm">
-          {new Date(appointment.appointmentDate).toLocaleDateString('es-MX')}
-        </td>
-        <td className="px-4 py-3 text-sm">
-          {new Date(appointment.appointmentDate).toLocaleTimeString('es-MX')}
-        </td>
-        <td className="px-4 py-3 text-sm">
-          {appointment.status}
-        </td>
-      </tr>
-    ));
-  };
-  
 
   const handleViewPackage = (packageId: number) => {
     setPurchasedPackageId(packageId);
@@ -240,14 +181,6 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
     <tr>
       <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
         No existen paquetes asignados a este paciente.
-      </td>
-    </tr>
-  );
-
-  const emptyPatientAppointmentsState = (
-    <tr>
-      <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-        No existen citas registradas para este paciente.
       </td>
     </tr>
   );
@@ -293,8 +226,8 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
 
   return (
     <>
-      <div className="w-full h-full">
-        <div className="flex flex-col gap-4">
+      <div className="w-full h-full overflow-y-auto">
+        <div className="flex flex-col gap-4 p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-1">
               <Card>
@@ -418,15 +351,9 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           {/* This was moved down to avoid overlapping with the pagination */}
           <div className="grid grid-cols-1 gap-4 mt-4">
             <div className="col-span-full">
-              <CardTable
-                cardTitle="Citas"
-                headers={['Nutriólogo', 'Paquete', 'Fecha', 'Hora', 'Estado', 'Acciones']}
-                loadRows={renderPatientAppointmentsRows}
-                isLoading={isLoadingPatientAppointments}
-                error={errorPatientAppointments}
-                emptyState={emptyPatientAppointmentsState}
-                onRetry={() => loadPatientAppointments(0)}
-              />
+              <div className="flex flex-col">
+                <PatientAppointments patient={patient} />
+              </div>
             </div>
           </div>
         </div>
@@ -498,7 +425,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
       </Dialog>
 
       <Dialog open={addAppointmentDialogOpen} onOpenChange={setAddAppointmentDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Agendar Cita</DialogTitle>
           </DialogHeader>

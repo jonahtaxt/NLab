@@ -35,7 +35,7 @@ public class AppointmentService {
     private final PatientAppointmentViewRepository patientAppointmentViewRepository;
 
     private static final Set<String> VALID_STATUSES = Set.of(
-            "SCHEDULED", "COMPLETED", "CANCELLED", "RESCHEDULED", "NO_SHOW");
+            "AGENDADA", "COMPLETADA", "CANCELADA", "REAGENDADA", "NO_ASISTENCIA");
 
     @Transactional
     public Appointment scheduleAppointment(@Valid AppointmentDTO dto) {
@@ -76,7 +76,7 @@ public class AppointmentService {
                     appointment.setPurchasedPackage(purchasedPackage);
                     appointment.setNutritionist(nutritionist);
                     appointment.setAppointmentDateTime(dto.getAppointmentDateTime());
-                    appointment.setStatus("SCHEDULED"); // Initial status is always SCHEDULED
+                    appointment.setStatus("AGENDADA"); // Initial status is always AGENDADA
                     appointment.setNotes(dto.getNotes());
                     appointment.setCreatedAt(LocalDateTime.now());
 
@@ -151,9 +151,9 @@ public class AppointmentService {
                             .findById(appointmentId)
                             .orElseThrow(() -> new AppointmentServiceException("Appointment not found"));
 
-                    // Validate if appointment can be cancelled
-                    if ("COMPLETED".equals(appointment.getStatus()) ||
-                            "CANCELLED".equals(appointment.getStatus())) {
+                    // Validate if appointment can be CANCELADA
+                    if ("COMPLETADA".equals(appointment.getStatus()) ||
+                            "CANCELADA".equals(appointment.getStatus())) {
                         throw new AppointmentServiceException(
                                 "Cannot cancel appointment with status: " + appointment.getStatus());
                     }
@@ -164,7 +164,7 @@ public class AppointmentService {
                     purchasedPackageRepository.save(purchasedPackage);
 
                     // Update appointment status
-                    appointment.setStatus("CANCELLED");
+                    appointment.setStatus("CANCELADA");
                     return appointmentRepository.save(appointment);
 
                 },
@@ -208,18 +208,18 @@ public class AppointmentService {
     }
 
     private void validateStatusTransition(String currentStatus, String newStatus) {
-        // Prevent updating completed or cancelled appointments
-        if ("COMPLETED".equals(currentStatus) || "CANCELLED".equals(currentStatus)) {
+        // Prevent updating COMPLETADA or CANCELADA appointments
+        if ("COMPLETADA".equals(currentStatus) || "CANCELADA".equals(currentStatus)) {
             throw new AppointmentServiceException(
                     "Cannot update status of " + currentStatus + " appointment");
         }
 
         // Add any other status transition rules here
-        // For example, you might want to prevent transitioning from "NO_SHOW" to
-        // "SCHEDULED"
-        if ("NO_SHOW".equals(currentStatus) && "SCHEDULED".equals(newStatus)) {
+        // For example, you might want to prevent transitioning from "NO_ASISTENCIA" to
+        // "AGENDADA"
+        if ("NO_ASISTENCIA".equals(currentStatus) && "AGENDADA".equals(newStatus)) {
             throw new AppointmentServiceException(
-                    "Cannot change status from NO_SHOW to SCHEDULED");
+                    "Cannot change status from NO_ASISTENCIA to AGENDADA");
         }
     }
 }

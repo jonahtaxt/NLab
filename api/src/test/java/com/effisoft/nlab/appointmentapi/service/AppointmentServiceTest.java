@@ -62,7 +62,7 @@ class AppointmentServiceTest {
         validAppointmentDTO.setPurchasedPackageId(1);
         validAppointmentDTO.setNutritionistId(1);
         validAppointmentDTO.setAppointmentDateTime(LocalDateTime.now().plusDays(1));
-        validAppointmentDTO.setStatus("SCHEDULED");
+        validAppointmentDTO.setStatus("AGENDADA");
         validAppointmentDTO.setNotes("Initial consultation");
 
         // Set up existing appointment
@@ -71,7 +71,7 @@ class AppointmentServiceTest {
         existingAppointment.setPurchasedPackage(purchasedPackage);
         existingAppointment.setNutritionist(nutritionist);
         existingAppointment.setAppointmentDateTime(LocalDateTime.now().plusDays(1));
-        existingAppointment.setStatus("SCHEDULED");
+        existingAppointment.setStatus("AGENDADA");
         existingAppointment.setNotes("Initial consultation");
         existingAppointment.setCreatedAt(LocalDateTime.now());
     }
@@ -84,12 +84,12 @@ class AppointmentServiceTest {
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(existingAppointment);
 
         // Act
-        Appointment scheduled = appointmentService.scheduleAppointment(validAppointmentDTO);
+        Appointment AGENDADA = appointmentService.scheduleAppointment(validAppointmentDTO);
 
         // Assert
-        assertNotNull(scheduled);
-        assertEquals("SCHEDULED", scheduled.getStatus());
-        assertNotNull(scheduled.getCreatedAt());
+        assertNotNull(AGENDADA);
+        assertEquals("AGENDADA", AGENDADA.getStatus());
+        assertNotNull(AGENDADA.getCreatedAt());
         verify(purchasedPackageRepository).save(any(PurchasedPackage.class));
         verify(appointmentRepository).save(any(Appointment.class));
     }
@@ -138,10 +138,10 @@ class AppointmentServiceTest {
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(existingAppointment);
 
         // Act
-        Appointment updated = appointmentService.updateAppointmentStatus(1, "COMPLETED");
+        Appointment updated = appointmentService.updateAppointmentStatus(1, "COMPLETADA");
 
         // Assert
-        assertEquals("COMPLETED", updated.getStatus());
+        assertEquals("COMPLETADA", updated.getStatus());
         verify(appointmentRepository).save(existingAppointment);
     }
 
@@ -153,7 +153,7 @@ class AppointmentServiceTest {
         // Act & Assert
         AppointmentServiceException exception = assertThrows(
                 AppointmentServiceException.class,
-                () -> appointmentService.updateAppointmentStatus(999, "COMPLETED")
+                () -> appointmentService.updateAppointmentStatus(999, "COMPLETADA")
         );
 
         assertEquals("Appointment not found", exception.getMessage());
@@ -171,7 +171,7 @@ class AppointmentServiceTest {
         appointmentService.cancelAppointment(1);
 
         // Assert
-        assertEquals("CANCELLED", existingAppointment.getStatus());
+        assertEquals("CANCELADA", existingAppointment.getStatus());
         assertEquals(6, purchasedPackage.getRemainingAppointments()); // Increased by 1
         verify(purchasedPackageRepository).save(purchasedPackage);
         verify(appointmentRepository).save(existingAppointment);

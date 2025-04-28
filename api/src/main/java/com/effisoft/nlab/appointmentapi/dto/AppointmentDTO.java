@@ -19,8 +19,8 @@ public class AppointmentDTO {
     private LocalDateTime appointmentDateTime;
 
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "^(SCHEDULED|COMPLETED|CANCELLED|RESCHEDULED|NO_SHOW)$", 
-            message = "Invalid status. Must be one of: SCHEDULED, COMPLETED, CANCELLED, RESCHEDULED, NO_SHOW")
+    @Pattern(regexp = "^(AGENDADA|COMPLETADA|CANCELADA|REAGENDADA|NO_ASISTENCIA)$", 
+            message = "Invalid status. Must be one of: AGENDADA, COMPLETADA, CANCELADA, REAGENDADA, NO_ASISTENCIA")
     private String status;
 
     private String notes;

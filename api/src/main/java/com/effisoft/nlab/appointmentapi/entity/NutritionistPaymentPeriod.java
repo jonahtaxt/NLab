@@ -40,7 +40,7 @@ public class NutritionistPaymentPeriod {
     private BigDecimal totalAmount;
 
     @NotBlank(message = "Payment status is required")
-    @Pattern(regexp = "^(PENDING|PAID|CANCELLED)$", message = "Invalid payment status")
+    @Pattern(regexp = "^(PENDING|PAID|CANCELADA)$", message = "Invalid payment status")
     @Column(nullable = false)
     private String paymentStatus;
 

@@ -29,7 +29,7 @@ public class NutritionistPaymentPeriodDTO {
     private BigDecimal totalAmount;
 
     @NotBlank(message = "Payment status is required")
-    @Pattern(regexp = "^(PENDING|PAID|CANCELLED)$", message = "Invalid payment status")
+    @Pattern(regexp = "^(PENDING|PAID|CANCELADA)$", message = "Invalid payment status")
     private String paymentStatus;
 
     private LocalDateTime processedDate;

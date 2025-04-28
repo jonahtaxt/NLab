@@ -45,24 +45,24 @@ public class NutritionistPaymentPeriodService {
                 paymentPeriod.setPeriodStartDate(dto.getPeriodStartDate());
                 paymentPeriod.setPeriodEndDate(dto.getPeriodEndDate());
 
-                // Calculate total appointments and amount based on completed appointments
+                // Calculate total appointments and amount based on COMPLETADA appointments
                 LocalDateTime startDateTime = dto.getPeriodStartDate().atStartOfDay();
                 LocalDateTime endDateTime = dto.getPeriodEndDate().atTime(23, 59, 59);
 
-                List<Appointment> completedAppointments = appointmentRepository
+                List<Appointment> COMPLETADAAppointments = appointmentRepository
                         .findByNutritionistIdAndAppointmentDateTimeBetween(
                                 nutritionist.getId(),
                                 startDateTime,
                                 endDateTime
                         )
                         .stream()
-                        .filter(appointment -> "COMPLETED".equals(appointment.getStatus()))
+                        .filter(appointment -> "COMPLETADA".equals(appointment.getStatus()))
                         .toList();
 
-                paymentPeriod.setTotalAppointments(completedAppointments.size());
+                paymentPeriod.setTotalAppointments(COMPLETADAAppointments.size());
 
                 // Calculate total amount based on package types' nutritionist rates
-                BigDecimal totalAmount = completedAppointments.stream()
+                BigDecimal totalAmount = COMPLETADAAppointments.stream()
                         .map(appointment ->
                                 appointment.getPurchasedPackage().getPackageType().getNutritionistRate())
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -107,8 +107,8 @@ public class NutritionistPaymentPeriodService {
                     throw new NutritionistPaymentPeriodException("Payment period is already paid");
                 }
 
-                if ("CANCELLED".equals(period.getPaymentStatus())) {
-                    throw new NutritionistPaymentPeriodException("Cannot process cancelled payment period");
+                if ("CANCELADA".equals(period.getPaymentStatus())) {
+                    throw new NutritionistPaymentPeriodException("Cannot process CANCELADA payment period");
                 }
 
                 period.setPaymentStatus("PAID");
@@ -143,19 +143,19 @@ public class NutritionistPaymentPeriodService {
                 LocalDateTime startDateTime = dto.getPeriodStartDate().atStartOfDay();
                 LocalDateTime endDateTime = dto.getPeriodEndDate().atTime(23, 59, 59);
 
-                List<Appointment> completedAppointments = appointmentRepository
+                List<Appointment> COMPLETADAAppointments = appointmentRepository
                         .findByNutritionistIdAndAppointmentDateTimeBetween(
                                 existingPeriod.getNutritionist().getId(),
                                 startDateTime,
                                 endDateTime
                         )
                         .stream()
-                        .filter(appointment -> "COMPLETED".equals(appointment.getStatus()))
+                        .filter(appointment -> "COMPLETADA".equals(appointment.getStatus()))
                         .toList();
 
-                existingPeriod.setTotalAppointments(completedAppointments.size());
+                existingPeriod.setTotalAppointments(COMPLETADAAppointments.size());
 
-                BigDecimal totalAmount = completedAppointments.stream()
+                BigDecimal totalAmount = COMPLETADAAppointments.stream()
                         .map(appointment ->
                                 appointment.getPurchasedPackage().getPackageType().getNutritionistRate())
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -180,7 +180,7 @@ public class NutritionistPaymentPeriodService {
                     throw new NutritionistPaymentPeriodException("Cannot cancel paid payment period");
                 }
 
-                period.setPaymentStatus("CANCELLED");
+                period.setPaymentStatus("CANCELADA");
                 return nutritionistPaymentPeriodRepository.save(period);
             },
             NutritionistPaymentPeriodException::new,

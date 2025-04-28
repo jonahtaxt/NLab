@@ -96,7 +96,7 @@ const AppointmentForm = ({
             const appointmentDTO = {
                 id: 0,
                 purchasedPackageId: values.purchasedPackageId,
-                status: "SCHEDULED",
+                status: "AGENDADA",
                 nutritionistId: parseInt(values.nutritionistId),
                 appointmentDateTime: values.appointmentDateTime,
                 notes: ""
@@ -134,11 +134,11 @@ const AppointmentForm = ({
                     </div>
                 )}
                 {purchasedPackage && (
-                    <>
+                    <div className="grid grid-cols-3 gap-4 mb-4">
                         <FormItem>
                             <FormLabel>Paciente</FormLabel>
                             <FormControl>
-                                <div>
+                                <div className="font-medium">
                                     {purchasedPackage.patient.firstName + ' ' + purchasedPackage.patient.lastName}
                                 </div>
                             </FormControl>
@@ -146,7 +146,7 @@ const AppointmentForm = ({
                         <FormItem>
                             <FormLabel>Paquete</FormLabel>
                             <FormControl>
-                                <div>
+                                <div className="font-medium">
                                     {purchasedPackage.packageType.name}
                                 </div>
                             </FormControl>
@@ -154,12 +154,12 @@ const AppointmentForm = ({
                         <FormItem>
                             <FormLabel>Citas restantes</FormLabel>
                             <FormControl>
-                                <div>
+                                <div className="font-medium">
                                     {purchasedPackage.remainingAppointments}
                                 </div>
                             </FormControl>
                         </FormItem>
-                    </>
+                    </div>
                 )}
                 <FormField
                     control={form.control}
@@ -202,7 +202,7 @@ const AppointmentForm = ({
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                             <FormLabel>Fecha y hora de la cita</FormLabel>
-                            <div className="space-y-4">
+                            <div className="flex gap-4">
                                 <div className="rounded-md border">
                                     <Calendar
                                         mode="single"
@@ -220,8 +220,8 @@ const AppointmentForm = ({
                                         initialFocus
                                     />
                                 </div>
-                                <div className="p-3 border rounded-md">
-                                    <div className="grid grid-cols-4 gap-2">
+                                <div className="p-3 border rounded-md flex-1">
+                                    <div className="grid grid-cols-3 gap-2">
                                         {generateTimeSlots().map((time) => (
                                             <Button
                                                 key={time.toISOString()}
