@@ -1,0 +1,28 @@
+CREATE TABLE [dbo].[AppointmentNotes]
+(
+  [Id] INT IDENTITY (1, 1) NOT NULL,
+  [AppointmentId] INT NOT NULL,
+  [Weight] DECIMAL(5, 2) NOT NULL,
+  [TotalFat] DECIMAL(5, 2) NOT NULL,
+  [UpperFat] DECIMAL(5, 2) NOT NULL,
+  [LowerFat] DECIMAL(5, 2) NOT NULL,
+  [VisceralFat] DECIMAL(5, 2) NOT NULL,
+  [MuscleMass] DECIMAL(5, 2) NOT NULL,
+  [BoneMass] DECIMAL(5, 2) NOT NULL,
+  [MetabolicAge] INT NOT NULL,
+  [SkinfoldSubscapular] DECIMAL(5, 2) NOT NULL,
+  [SkinfoldTriceps] DECIMAL(5, 2) NOT NULL,
+  [SkinfoldBiceps] DECIMAL(5, 2) NOT NULL,
+  [SkinfoldIliacCrest] DECIMAL(5, 2) NOT NULL,
+  [SkinfoldSuprailiac] DECIMAL(5, 2) NOT NULL,
+  [SkinfoldAbdominal] DECIMAL(5, 2) NOT NULL,
+  [CircumferenceMidArmRelaxed] DECIMAL(5, 2) NOT NULL,
+  [CircumferenceMidArmFlexed] DECIMAL(5, 2) NOT NULL,
+  [CircumferenceUmbilical] DECIMAL(5, 2) NOT NULL,
+  [CircumferenceWaist] DECIMAL(5, 2) NOT NULL,
+  [CircumferenceHip] DECIMAL(5, 2) NOT NULL,
+  [Notes] NVARCHAR(MAX) NULL,
+  [CreatedAt] DATETIME NOT NULL DEFAULT GETDATE(),
+  [UpdatedAt] DATETIME NOT NULL DEFAULT GETDATE(),
+  FOREIGN KEY ([AppointmentId]) REFERENCES [dbo].[Appointment]([Id])
+)
