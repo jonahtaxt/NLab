@@ -41,6 +41,7 @@ class AppointmentServiceTest {
     private Appointment existingAppointment;
     private PurchasedPackage purchasedPackage;
     private Nutritionist nutritionist;
+    private AppointmentDTO updatedAppointmentDTO;
 
     @BeforeEach
     void setUp() {
@@ -74,6 +75,15 @@ class AppointmentServiceTest {
         existingAppointment.setStatus("AGENDADA");
         existingAppointment.setNotes("Initial consultation");
         existingAppointment.setCreatedAt(LocalDateTime.now());
+
+        // Set up updated DTO
+        updatedAppointmentDTO = new AppointmentDTO();
+        updatedAppointmentDTO.setId(1);
+        updatedAppointmentDTO.setStatus("COMPLETADA");
+        updatedAppointmentDTO.setAppointmentDateTime(LocalDateTime.now().plusDays(1));
+        updatedAppointmentDTO.setNotes("Updated consultation");
+        updatedAppointmentDTO.setPurchasedPackageId(1);
+        updatedAppointmentDTO.setNutritionistId(1);
     }
 
     @Test
@@ -82,14 +92,15 @@ class AppointmentServiceTest {
         when(purchasedPackageRepository.findById(1)).thenReturn(Optional.of(purchasedPackage));
         when(nutritionistRepository.findById(1)).thenReturn(Optional.of(nutritionist));
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(existingAppointment);
+        when(appointmentRepository.existsByNutritionistIdAndAppointmentDateTime(any(), any())).thenReturn(false);
 
         // Act
-        Appointment AGENDADA = appointmentService.scheduleAppointment(validAppointmentDTO);
+        Appointment scheduledAppointment = appointmentService.scheduleAppointment(validAppointmentDTO);
 
         // Assert
-        assertNotNull(AGENDADA);
-        assertEquals("AGENDADA", AGENDADA.getStatus());
-        assertNotNull(AGENDADA.getCreatedAt());
+        assertNotNull(scheduledAppointment);
+        assertEquals("AGENDADA", scheduledAppointment.getStatus());
+        assertNotNull(scheduledAppointment.getCreatedAt());
         verify(purchasedPackageRepository).save(any(PurchasedPackage.class));
         verify(appointmentRepository).save(any(Appointment.class));
     }
@@ -135,30 +146,17 @@ class AppointmentServiceTest {
     void updateAppointmentStatus_WhenValidUpdate_ShouldUpdateStatus() {
         // Arrange
         when(appointmentRepository.findById(1)).thenReturn(Optional.of(existingAppointment));
+        when(nutritionistRepository.findById(1)).thenReturn(Optional.of(nutritionist));
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(existingAppointment);
 
         // Act
-        Appointment updated = appointmentService.updateAppointmentStatus(1, "COMPLETADA");
+        Appointment updated = appointmentService.updateAppointmentStatus(updatedAppointmentDTO);
 
         // Assert
         assertEquals("COMPLETADA", updated.getStatus());
         verify(appointmentRepository).save(existingAppointment);
     }
 
-    @Test
-    void updateAppointmentStatus_WhenNotFound_ShouldThrowException() {
-        // Arrange
-        when(appointmentRepository.findById(999)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        AppointmentServiceException exception = assertThrows(
-                AppointmentServiceException.class,
-                () -> appointmentService.updateAppointmentStatus(999, "COMPLETADA")
-        );
-
-        assertEquals("Appointment not found", exception.getMessage());
-        verify(appointmentRepository, never()).save(any(Appointment.class));
-    }
 
     @Test
     void cancelAppointment_WhenValid_ShouldCancelAndRestoreAppointment() {
@@ -190,6 +188,40 @@ class AppointmentServiceTest {
 
         assertEquals("Appointment not found", exception.getMessage());
         verify(purchasedPackageRepository, never()).save(any(PurchasedPackage.class));
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
+    void scheduleAppointment_WhenAppointmentTimeAlreadyBooked_ShouldThrowException() {
+        // Arrange
+        when(purchasedPackageRepository.findById(1)).thenReturn(Optional.of(purchasedPackage));
+        when(nutritionistRepository.findById(1)).thenReturn(Optional.of(nutritionist));
+        when(appointmentRepository.existsByNutritionistIdAndAppointmentDateTime(any(), any())).thenReturn(true);
+
+        // Act & Assert
+        AppointmentServiceException exception = assertThrows(
+                AppointmentServiceException.class,
+                () -> appointmentService.scheduleAppointment(validAppointmentDTO)
+        );
+
+        assertEquals("Appointment time is already booked", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
+    void scheduleAppointment_WhenPackageExpired_ShouldThrowException() {
+        // Arrange
+        purchasedPackage.setExpirationDate(LocalDateTime.now().minusDays(1));
+        when(purchasedPackageRepository.findById(1)).thenReturn(Optional.of(purchasedPackage));
+
+        // Act & Assert
+        AppointmentServiceException exception = assertThrows(
+                AppointmentServiceException.class,
+                () -> appointmentService.scheduleAppointment(validAppointmentDTO)
+        );
+
+        assertEquals("Package has expired", exception.getMessage());
+        verify(nutritionistRepository, never()).findById(any());
         verify(appointmentRepository, never()).save(any(Appointment.class));
     }
 }

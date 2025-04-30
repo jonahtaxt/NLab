@@ -17,9 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.Boolean;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -46,12 +46,11 @@ public class AppointmentController {
         return ResponseEntity.ok(appointments);
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
-    public ResponseEntity<Appointment> updateAppointmentStatus(
-            @PathVariable Integer id,
-            @RequestParam String status) {
-        Appointment updatedAppointment = appointmentService.updateAppointmentStatus(id, status);
+    public ResponseEntity<Appointment> updateAppointment(
+            @Valid @RequestBody AppointmentDTO appointmentDTO) {
+        Appointment updatedAppointment = appointmentService.updateAppointmentStatus(appointmentDTO);
         return ResponseEntity.ok(updatedAppointment);
     }
 
@@ -86,5 +85,12 @@ public class AppointmentController {
                 patientAppointments.isLast());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{appointmentId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    public ResponseEntity<Appointment> getAppointmentById(@PathVariable Integer appointmentId) {
+        Optional<Appointment> appointment = appointmentService.getByAppointmentId(appointmentId);
+        return ResponseEntity.ok(appointment.orElse(null));
     }
 }

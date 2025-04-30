@@ -23,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -117,25 +118,33 @@ public class AppointmentService {
     }
 
     @Transactional
-    public Appointment updateAppointmentStatus(Integer appointmentId, String newStatus) {
+    public Appointment updateAppointmentStatus(AppointmentDTO dto) {
         return ServiceExceptionHandler.executeWithExceptionHandling(
                 () -> {
                     // Validate status
-                    if (!VALID_STATUSES.contains(newStatus)) {
+                    if (!VALID_STATUSES.contains(dto.getStatus())) {
                         throw new AppointmentServiceException(
                                 "Invalid status. Must be one of: " + String.join(", ", VALID_STATUSES));
                     }
 
+                    Nutritionist nutritionist = nutritionistRepository
+                        .findById(dto.getNutritionistId())
+                        .orElseThrow(() -> new AppointmentServiceException("Nutritionist not found"));
+
                     // Get and validate appointment exists
                     Appointment appointment = appointmentRepository
-                            .findById(appointmentId)
+                            .findById(dto.getId())
                             .orElseThrow(() -> new AppointmentServiceException("Appointment not found"));
 
                     // Validate status transition
-                    validateStatusTransition(appointment.getStatus(), newStatus);
+                    validateStatusTransition(appointment.getStatus(), dto.getStatus());
 
                     // Update status
-                    appointment.setStatus(newStatus);
+                    appointment.setStatus(dto.getStatus());
+                    appointment.setAppointmentDateTime(dto.getAppointmentDateTime());
+                    appointment.setNutritionist(nutritionist);
+                    appointment.setNotes(null);
+
                     return appointmentRepository.save(appointment);
                 },
                 AppointmentServiceException::new,
@@ -204,7 +213,10 @@ public class AppointmentService {
 
     @Transactional(readOnly = true)
     public Page<PatientAppointmentView> getPatientAppointments(Pageable pageable, Integer patientId) {
-        return patientAppointmentViewRepository.findByPatientId(patientId, pageable);
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                return patientAppointmentViewRepository.findByPatientId(patientId, pageable);
+            }, AppointmentServiceException::new, "Get Patient Appointments");
     }
 
     private void validateStatusTransition(String currentStatus, String newStatus) {
@@ -221,5 +233,13 @@ public class AppointmentService {
             throw new AppointmentServiceException(
                     "Cannot change status from NO_ASISTENCIA to AGENDADA");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Appointment> getByAppointmentId(Integer appointmentId) {
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                return appointmentRepository.findById(appointmentId);
+            }, AppointmentServiceException::new, "Get Patient Appointments");
     }
 }

@@ -11,11 +11,11 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { fetchActiveNutritionists } from "@/app/lib/data.nutritionist";
 import { DialogFooter } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { insertAppointment } from "@/app/lib/data.appointment";
+import { fetchAppointmentById, insertAppointment, updateAppointment } from "@/app/lib/data.appointment";
 
 interface AppointmentFormProps {
     purchasedPackage: PurchasedPackage | undefined;
+    appointmentId: number | undefined;
     closeDialog: () => void;
     saveAppointment: () => void;
 }
@@ -24,9 +24,9 @@ const AppointmentForm = ({
     purchasedPackage,
     closeDialog,
     saveAppointment,
+    appointmentId
 }: AppointmentFormProps) => {
     const [serverError, setServerError] = useState<string | null>(null);
-    const [date, setDate] = useState<Date | undefined>();
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -34,6 +34,9 @@ const AppointmentForm = ({
 
     const formSchema = z.object({
         purchasedPackageId: z.number().min(1, { message: "Debe seleccionar un paquete" }),
+        appointmentStatus: z.string({
+            required_error: "Debe seleccionar el estado de la cita"
+        }),
         nutritionistId: z.string({
             required_error: "Debe seleccionar un nutriólogo"
         }),
@@ -56,13 +59,37 @@ const AppointmentForm = ({
         try {
             setIsLoading(true);
             setError(null);
-            const [pNutritionists] = await Promise.all([
-                fetchActiveNutritionists()
+
+            const [pNutritionists, pAppointment] = await Promise.all([
+                fetchActiveNutritionists(),
+                appointmentId ? fetchAppointmentById(appointmentId) : null
             ]);
+
             setNutritionists(pNutritionists);
+
+            if (pAppointment) {
+                form.setValue("purchasedPackageId", pAppointment.purchasedPackage.id);
+                const appointmentDate = new Date(pAppointment.appointmentDateTime);
+                const localDate = new Date(appointmentDate.getTime() - appointmentDate.getTimezoneOffset() * 60000);
+                form.setValue("appointmentDateTime", localDate);
+                form.setValue("notes", pAppointment.notes || "");
+                if (pAppointment.nutritionist) {
+                    const nutritionistId = pAppointment.nutritionist.id.toString();
+                    setTimeout(() => {
+                        form.setValue("nutritionistId", nutritionistId, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true
+                        });
+                    }, 0);
+                }
+                form.setValue("appointmentStatus", pAppointment.status);
+            } else {
+                form.setValue("appointmentStatus", "AGENDADA");
+            }
         } catch (err) {
-            console.error("Error loading payment methods:", err);
-            setError("Error al cargar los métodos de pago. Intente nuevamente.");
+            console.error("Error loading appointment data:", err);
+            setError("Error al cargar los datos de la cita. Intente nuevamente.");
         } finally {
             setIsLoading(false);
         }
@@ -89,22 +116,34 @@ const AppointmentForm = ({
             return;
         }
 
+        if (!values.appointmentStatus) {
+            form.setError("appointmentStatus", {
+                type: "manual",
+                message: "Debe seleccionar un estado"
+            });
+            return;
+        }
+
         try {
             setIsSubmitting(true);
-            
+
             // Format the date to ISO string for the backend
             const appointmentDTO = {
-                id: 0,
+                id: appointmentId || 0,
                 purchasedPackageId: values.purchasedPackageId,
-                status: "AGENDADA",
+                status: values.appointmentStatus,
                 nutritionistId: parseInt(values.nutritionistId),
                 appointmentDateTime: values.appointmentDateTime,
                 notes: ""
             };
 
-            await insertAppointment(appointmentDTO);
+            if (!appointmentId) {
+                await insertAppointment(appointmentDTO);
+            } else {
+                await updateAppointment(appointmentId, appointmentDTO);
+                
+            }
             saveAppointment();
-            closeDialog();
         } catch (error) {
             console.error("Error creating appointment:", error);
             setServerError("Error al crear la cita. Intente nuevamente.");
@@ -116,7 +155,7 @@ const AppointmentForm = ({
     const generateTimeSlots = () => {
         const slots = [];
         for (let hour = 8; hour <= 17; hour++) {
-            for (let minute = 0; minute < 60; minute += 15) {
+            for (let minute = 0; minute < 60; minute += 30) {
                 const time = new Date();
                 time.setHours(hour, minute, 0, 0);
                 slots.push(time);
@@ -198,6 +237,34 @@ const AppointmentForm = ({
                 />
                 <FormField
                     control={form.control}
+                    name="appointmentStatus"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Estado</FormLabel>
+                            <FormControl>
+                                <Select
+                                    disabled={isLoading || isSubmitting || (appointmentId === undefined)}
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Selecciona un estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="AGENDADA">AGENDADA</SelectItem>
+                                        <SelectItem value="CANCELADA">CANCELADA</SelectItem>
+                                        <SelectItem value="COMPLETADA">COMPLETADA</SelectItem>
+                                        <SelectItem value="REAGENDADA">REAGENDADA</SelectItem>
+                                        <SelectItem value="NO_ASISTENCIA">NO ASISTENCIA</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
                     name="appointmentDateTime"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
@@ -227,12 +294,13 @@ const AppointmentForm = ({
                                                 key={time.toISOString()}
                                                 variant={
                                                     field.value &&
-                                                    field.value.getHours() === time.getHours() &&
-                                                    field.value.getMinutes() === time.getMinutes()
+                                                        field.value.getHours() === time.getHours() &&
+                                                        field.value.getMinutes() === time.getMinutes()
                                                         ? "default"
                                                         : "outline"
                                                 }
                                                 className="h-8"
+                                                type="button"
                                                 onClick={() => {
                                                     const newDateTime = new Date(field.value || new Date());
                                                     newDateTime.setHours(time.getHours(), time.getMinutes());
@@ -250,29 +318,29 @@ const AppointmentForm = ({
                     )}
                 />
                 <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={closeDialog}
-                            type="button"
-                            disabled={isSubmitting}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="min-w-24"
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Guardando...
-                                </>
-                            ) : (
-                                'Guardar'
-                            )}
-                        </Button>
-                    </DialogFooter>
+                    <Button
+                        variant="outline"
+                        onClick={closeDialog}
+                        type="button"
+                        disabled={isSubmitting}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="min-w-24"
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Guardando...
+                            </>
+                        ) : (
+                            'Guardar'
+                        )}
+                    </Button>
+                </DialogFooter>
             </form>
         </Form>
     );

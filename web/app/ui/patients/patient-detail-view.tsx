@@ -34,6 +34,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   const [patientPackageDetailDialogOpen, setPatientPackageDetailDialogOpen] = useState(false);
   const [purchasedPackageId, setPurchasedPackageId] = useState<number | undefined>(undefined);
   const [addAppointmentDialogOpen, setAddAppointmentDialogOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | undefined>(undefined);
   // Packages table state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -168,11 +169,17 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   };
 
   const handleBookAppointment = (purchasedPackage: PurchasedPackage) => {
+    setSelectedAppointmentId(undefined);
     setSelectedPurchasedPackage(purchasedPackage);
     if (purchasedPackage.remainingAppointments <= 0) {
       showToast.error("No hay citas restantes en este paquete");
       return;
     }
+    setAddAppointmentDialogOpen(true);
+  };
+
+  const handleRescheduleAppointment = (appointmentId: number) => {
+    setSelectedAppointmentId(appointmentId);
     setAddAppointmentDialogOpen(true);
   };
 
@@ -352,7 +359,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           <div className="grid grid-cols-1 gap-4 mt-4">
             <div className="col-span-full">
               <div className="flex flex-col">
-                <PatientAppointments patient={patient} />
+                <PatientAppointments patient={patient} rescheduleAppointment={handleRescheduleAppointment} />
               </div>
             </div>
           </div>
@@ -433,7 +440,11 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
             <AppointmentForm
               purchasedPackage={selectedPurchasedPackage}
               closeDialog={() => setAddAppointmentDialogOpen(false)}
-              saveAppointment={() => setAddAppointmentDialogOpen(false)}
+              saveAppointment={() => {
+                setAddAppointmentDialogOpen(false);
+                loadPackages(currentPage);
+              }}
+              appointmentId={selectedAppointmentId}
             />
           </div>
         </DialogContent>
