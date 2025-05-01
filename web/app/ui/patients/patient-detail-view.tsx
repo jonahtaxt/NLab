@@ -16,6 +16,7 @@ import PatientPaymentForm from "@/app/ui/patients/patient-payment-form";
 import PatientPackageDetail from "@/app/ui/patients/patient-package-detail";
 import AppointmentForm from "@/app/ui/appointments/appointment-form";
 import PatientAppointments from "@/app/ui/patients/patient-appointments";
+import AppointmentNotes from "../appointments/appointment-notes";
 
 interface PatientDetailViewProps {
   patient: Patient;
@@ -35,6 +36,7 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
   const [purchasedPackageId, setPurchasedPackageId] = useState<number | undefined>(undefined);
   const [addAppointmentDialogOpen, setAddAppointmentDialogOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<number | undefined>(undefined);
+  const [addAppointmentNotesDialogOpen, setAddAppointmentNotesDialogOpen] = useState(false);
   // Packages table state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -92,6 +94,11 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
 
   const handleAddAppointment = () => {
     alert("Función de agendar cita no implementada");
+  };
+
+  const handleAddAppointmentNotes = (appointmentId: number) => {
+    setSelectedAppointmentId(appointmentId);
+    setAddAppointmentNotesDialogOpen(true);
   };
 
   // Function to render package table rows
@@ -359,7 +366,9 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           <div className="grid grid-cols-1 gap-4 mt-4">
             <div className="col-span-full">
               <div className="flex flex-col">
-                <PatientAppointments patient={patient} rescheduleAppointment={handleRescheduleAppointment} />
+                <PatientAppointments patient={patient}
+                  rescheduleAppointment={handleRescheduleAppointment}
+                  addAppointmentNotes={handleAddAppointmentNotes} />
               </div>
             </div>
           </div>
@@ -449,6 +458,11 @@ const PatientDetailView = ({ patient, onBack }: PatientDetailViewProps) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AppointmentNotes appointmentId={selectedAppointmentId}
+        dialogOpen={addAppointmentNotesDialogOpen}
+        setDialogOpen={setAddAppointmentNotesDialogOpen}
+        closeDialog={() => setAddAppointmentNotesDialogOpen(false)} />
     </>
   );
 };

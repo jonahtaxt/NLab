@@ -140,7 +140,7 @@ const AppointmentForm = ({
             if (!appointmentId) {
                 await insertAppointment(appointmentDTO);
             } else {
-                await updateAppointment(appointmentId, appointmentDTO);
+                await updateAppointment(appointmentDTO);
                 
             }
             saveAppointment();

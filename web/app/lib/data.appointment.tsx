@@ -1,5 +1,5 @@
 import { authGet, authPost, authPut } from "@/app/lib/auth";
-import { Appointment, AppointmentDTO, PaginatedResponse, PatientAppointmentView } from "@/app/lib/definitions";
+import { Appointment, AppointmentDTO, AppointmentNotes, AppointmentNotesDTO, PaginatedResponse, PatientAppointmentView } from "@/app/lib/definitions";
 
 export async function insertAppointment(appointment: AppointmentDTO): Promise<Appointment> {
     try {
@@ -11,7 +11,7 @@ export async function insertAppointment(appointment: AppointmentDTO): Promise<Ap
     }
 }
 
-export async function updateAppointment(appointmentId: number, appointmentDto: AppointmentDTO): Promise<Appointment> {
+export async function updateAppointment(appointmentDto: AppointmentDTO): Promise<Appointment> {
     try {
         const result = await authPut<Appointment>('/api/appointments', appointmentDto);
         return result;
@@ -44,5 +44,15 @@ export async function fetchAppointmentById(appointmentId: number): Promise<Appoi
     } catch (err) {
         console.error('API error:', err);
         throw new Error('Failed to fetch appointment data');
+    }
+}
+
+export async function insertAppointmentNotes(appointmentNotes: AppointmentNotesDTO): Promise<AppointmentNotes> {
+    try {
+        const result = await authPost<AppointmentNotes>('/api/appointment-notes', appointmentNotes);
+        return result;
+    } catch (err) {
+        console.error('API error:', err);
+        throw new Error('Failed to insert appointment notes');
     }
 }

@@ -189,3 +189,55 @@ export type PatientAppointmentView = {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type AppointmentNotes = {
+  id: number;
+  appointment: Appointment;
+  weight: number;
+  totalFat: number;
+  upperFat: number;
+  lowerFat: number;
+  visceralFat: number;
+  muscleMass: number;
+  boneMass: number;
+  metabolicAge: number;
+  skinfoldSubscapular: number;
+  skinfoldTriceps: number;
+  skinfoldBiceps: number;
+  skinfoldIliacCrest: number;
+  skinfoldSuprailiac: number;
+  skinfoldAbdominal: number;
+  circumferenceMidArmRelaxed: number;
+  circumferenceMidArmFlexed: number;
+  circumferenceUmbilical: number;
+  circumferenceWaist: number;
+  circumferenceHip: number;
+  notes: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type AppointmentNotesDTO = {
+  id: number;
+  appointmentId: number;
+  weight: number;
+  totalFat: number;
+  upperFat: number;
+  lowerFat: number;
+  visceralFat: number;
+  muscleMass: number;
+  boneMass: number;
+  metabolicAge: number;
+  skinfoldSubscapular: number;
+  skinfoldTriceps: number;
+  skinfoldBiceps: number;
+  skinfoldIliacCrest: number;
+  skinfoldSuprailiac: number;
+  skinfoldAbdominal: number;
+  circumferenceMidArmRelaxed: number;
+  circumferenceMidArmFlexed: number;
+  circumferenceUmbilical: number;
+  circumferenceWaist: number;
+  circumferenceHip: number;
+  notes: string;
+}
