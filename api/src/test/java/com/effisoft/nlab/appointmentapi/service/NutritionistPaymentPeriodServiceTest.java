@@ -42,7 +42,7 @@ class NutritionistPaymentPeriodServiceTest {
     private NutritionistPaymentPeriodDTO validDTO;
     private NutritionistPaymentPeriod existingPeriod;
     private Nutritionist nutritionist;
-    private List<Appointment> completedAppointments;
+    private List<Appointment> COMPLETADAAppointments;
 
     @BeforeEach
     void setUp() {
@@ -60,7 +60,7 @@ class NutritionistPaymentPeriodServiceTest {
         validDTO.setPeriodEndDate(LocalDate.now());
         validDTO.setPaymentStatus("PENDING");
 
-        // Set up completed appointments
+        // Set up COMPLETADA appointments
         PackageType packageType = new PackageType();
         packageType.setNutritionistRate(new BigDecimal("50.00"));
 
@@ -69,9 +69,9 @@ class NutritionistPaymentPeriodServiceTest {
 
         Appointment appointment = new Appointment();
         appointment.setPurchasedPackage(purchasedPackage);
-        appointment.setStatus("COMPLETED");
+        appointment.setStatus("COMPLETADA");
 
-        completedAppointments = Arrays.asList(appointment);
+        COMPLETADAAppointments = Arrays.asList(appointment);
 
         // Set up existing period
         existingPeriod = new NutritionistPaymentPeriod();
@@ -90,7 +90,7 @@ class NutritionistPaymentPeriodServiceTest {
         when(nutritionistRepository.findById(1)).thenReturn(Optional.of(nutritionist));
         when(appointmentRepository.findByNutritionistIdAndAppointmentDateTimeBetween(
                 eq(1), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(completedAppointments);
+                .thenReturn(COMPLETADAAppointments);
         when(paymentPeriodRepository.save(any(NutritionistPaymentPeriod.class)))
                 .thenReturn(existingPeriod);
 
@@ -166,7 +166,7 @@ class NutritionistPaymentPeriodServiceTest {
         paymentPeriodService.cancelPaymentPeriod(1);
 
         // Assert
-        assertEquals("CANCELLED", existingPeriod.getPaymentStatus());
+        assertEquals("CANCELADA", existingPeriod.getPaymentStatus());
         verify(paymentPeriodRepository).save(existingPeriod);
     }
 

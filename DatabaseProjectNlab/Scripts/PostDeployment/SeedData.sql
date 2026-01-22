@@ -5,11 +5,11 @@ Post-Deployment Script
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[PaymentMethod])
 BEGIN
-    INSERT INTO [dbo].[PaymentMethod] ([Name], [Description])
+    INSERT INTO [dbo].[PaymentMethod] ([Name], [Description], [DisplayOrder])
     VALUES 
-        ('Cash', 'Pago en Efectivo'),
-        ('Debit', 'Pago con Tarjeta de Débito'),
-        ('Credit', 'Pago con Tarjeta de Crédito');
+        ('Efectivo', 'Pago en Efectivo', 1),
+        ('Débito', 'Pago con Tarjeta de Débito', 2),
+        ('Crédito', 'Pago con Tarjeta de Crédito', 3);
 END
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[CardPaymentType])

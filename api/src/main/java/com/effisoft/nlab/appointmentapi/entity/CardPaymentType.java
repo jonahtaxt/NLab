@@ -56,8 +56,8 @@ public class CardPaymentType {
     /**
      * Indicates whether this payment type is currently available for use
      */
-    @Column(name = "IsActive", nullable = false)
-    private boolean isActive = true;
+    @Column(name = "Active", nullable = false)
+    private boolean active = true;
 
     /**
      * Calculates the total fee amount for a given purchase amount

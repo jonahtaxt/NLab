@@ -27,14 +27,14 @@ public class PaymentMethodController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<List<PaymentMethod>> getAllPaymentMethods() {
         List<PaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods();
         return ResponseEntity.ok(paymentMethods);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'NUTRITIONIST')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<PaymentMethod> getPaymentMethodById(@PathVariable Integer id) {
         PaymentMethod paymentMethod = paymentMethodService.getPaymentMethodById(id);
         return ResponseEntity.ok(paymentMethod);

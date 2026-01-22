@@ -19,7 +19,7 @@ public class PackageTypeDTO {
     @Min(value = 1, message = "Number of appointments must be at least 1")
     private Integer numberOfAppointments;
 
-    private boolean isBundle;
+    private boolean bundle;
 
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
@@ -32,5 +32,5 @@ public class PackageTypeDTO {
     @Digits(integer = 1, fraction = 2, message = "Nutritionist rate must have at most 1 digit and 2 decimal places")
     private BigDecimal nutritionistRate;
 
-    private boolean isActive;
+    private boolean active;
 }

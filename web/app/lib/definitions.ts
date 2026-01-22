@@ -4,8 +4,17 @@ export type Nutritionist = {
   lastName: string;
   email: string;
   phone: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
+  active: boolean;
+}
+
+export type NutritionistDTO = {
+  id: number | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
   active: boolean;
 }
 
@@ -15,8 +24,17 @@ export type Patient = {
   lastName: string;
   email: string;
   phone: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
+  active: boolean;
+}
+
+export type PatientDTO = {
+  id: number | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
   active: boolean;
 }
 
@@ -34,4 +52,192 @@ export type Jwt = {
 export type LoginResponseResult = {
   jwt: Jwt;
   ok: boolean;
+}
+
+export type PaymentMethod = {
+  id: number;
+  name: string;
+  description: string;
+  displayOrder: number;
+}
+
+export type CardPaymentType = {
+  id: number;
+  name: string;
+  description: string;
+  bankFeePercentage: string; // BigDecimal from Java
+  numberOfInstallments: number;
+  active: boolean;
+}
+
+export type PackageType = {
+  id: number;
+  name: string;
+  description: string;
+  numberOfAppointments: number;
+  bundle: boolean;
+  price: string;
+  nutritionistRate: string;
+  active: boolean;
+}
+
+export type PackageTypeDTO = {
+  id: number;
+  name: string;
+  description: string;
+  numberOfAppointments: number;
+  bundle: boolean;
+  price: string;
+  nutritionistRate: string;
+  active: boolean;
+}
+
+export type PackageTypeSelectDTO = {
+  id: number;
+  name: string;
+  numberOfAppointments: number;
+}
+
+export type PaginatedResponse<T> = {
+  content: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
+export type PurchasedPackage = {
+  id: number;
+  patient: Patient;
+  packageType: PackageType;
+  purchaseDate: string;
+  paidInFull: boolean;
+  remainingAppointments: number;
+  expirationDate: string;
+}
+
+export type PurchasedPackageDTO = {
+  id?: number;
+  patientId: number;
+  packageTypeId: number;
+  remainingAppointments?: number;
+  expirationDate?: string;
+}
+
+export type PatientPackagePaymentsDTO = {
+  id: number;
+  paymentMethodName: string;
+  cardPaymentTypeName: string;
+  paymentDate: Date;
+  totalPaid: string;
+}
+
+export type PatientPurchasedPackageDTO = {
+  purchasedPackage: PurchasedPackage;
+  patientPayments: PatientPackagePaymentsDTO[];
+  packagePaidTotal: string;
+}
+
+export type PatientPaymentDTO = {
+  id: number;
+  purchasedPackageId: number;
+  paymentMethodId: number;
+  cardPaymentTypeId: number | null;
+  totalPaid: string;
+}
+
+export type PatientPayment = {
+  id: number;
+  purchasedPackage: PurchasedPackage;
+  paymentMethod: PaymentMethod;
+  cardPaymentType: CardPaymentType;
+  paymentDate: Date;
+  totalPaid: string;
+}
+
+export type Appointment = {
+  id: number;
+  purchasedPackage: PurchasedPackage;
+  nutritionist: Nutritionist;
+  appointmentDateTime: Date;
+  status: string;
+  notes: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type AppointmentDTO = {
+  id: number;
+  purchasedPackageId: number;
+  nutritionistId: number;
+  appointmentDateTime: Date;
+  status: string;
+  notes: string;
+}
+
+export type PatientAppointmentView = {
+  appointmentId: number;
+  patientId: number;
+  nutritionistId: number;
+  nutritionistName: string;
+  packageName: string;
+  appointmentDate: Date;
+  appointmentTime: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type AppointmentNotes = {
+  id: number;
+  appointment: Appointment;
+  weight: number;
+  totalFat: number;
+  upperFat: number;
+  lowerFat: number;
+  visceralFat: number;
+  muscleMass: number;
+  boneMass: number;
+  metabolicAge: number;
+  skinfoldSubscapular: number;
+  skinfoldTriceps: number;
+  skinfoldBiceps: number;
+  skinfoldIliacCrest: number;
+  skinfoldSuprailiac: number;
+  skinfoldAbdominal: number;
+  circumferenceMidArmRelaxed: number;
+  circumferenceMidArmFlexed: number;
+  circumferenceUmbilical: number;
+  circumferenceWaist: number;
+  circumferenceHip: number;
+  notes: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type AppointmentNotesDTO = {
+  id: number;
+  appointmentId: number;
+  weight: number;
+  totalFat: number;
+  upperFat: number;
+  lowerFat: number;
+  visceralFat: number;
+  muscleMass: number;
+  boneMass: number;
+  metabolicAge: number;
+  skinfoldSubscapular: number;
+  skinfoldTriceps: number;
+  skinfoldBiceps: number;
+  skinfoldIliacCrest: number;
+  skinfoldSuprailiac: number;
+  skinfoldAbdominal: number;
+  circumferenceMidArmRelaxed: number;
+  circumferenceMidArmFlexed: number;
+  circumferenceUmbilical: number;
+  circumferenceWaist: number;
+  circumferenceHip: number;
+  notes: string;
 }

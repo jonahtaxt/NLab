@@ -3,6 +3,7 @@ package com.effisoft.nlab.appointmentapi.service;
 import com.effisoft.nlab.appointmentapi.dto.NutritionistDTO;
 import com.effisoft.nlab.appointmentapi.entity.Nutritionist;
 import com.effisoft.nlab.appointmentapi.exception.NutritionistServiceException;
+import com.effisoft.nlab.appointmentapi.mapper.NutritionistMapper;
 import com.effisoft.nlab.appointmentapi.repository.NutritionistRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,12 +27,16 @@ class NutritionistServiceTest {
 
     @Mock
     private NutritionistRepository nutritionistRepository;
+    
+    @Mock
+    private NutritionistMapper nutritionistMapper;
 
     @InjectMocks
     private NutritionistService nutritionistService;
 
     private NutritionistDTO validNutritionistDTO;
     private Nutritionist existingNutritionist;
+    private Nutritionist mappedNutritionist;
 
     @BeforeEach
     void setUp() {
@@ -52,12 +57,21 @@ class NutritionistServiceTest {
         existingNutritionist.setPhone("1234567890");
         existingNutritionist.setCreatedAt(LocalDateTime.now());
         existingNutritionist.setActive(true);
+        
+        // Set up a mapped nutritionist (result of the mapper operation)
+        mappedNutritionist = new Nutritionist();
+        mappedNutritionist.setFirstName("Jane");
+        mappedNutritionist.setLastName("Smith");
+        mappedNutritionist.setEmail("jane.smith@example.com");
+        mappedNutritionist.setPhone("1234567890");
+        // Note: CreatedAt and Active will be set by the service
     }
 
     @Test
     void createNutritionist_WhenValidDTOAndEmailNotExists_ShouldCreateNutritionist() {
         // Arrange
-        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail())).thenReturn(Optional.empty());
+        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail().toLowerCase())).thenReturn(Optional.empty());
+        when(nutritionistMapper.toEntity(validNutritionistDTO)).thenReturn(mappedNutritionist);
         when(nutritionistRepository.save(any(Nutritionist.class))).thenAnswer(invocation -> {
             Nutritionist saved = invocation.getArgument(0);
             saved.setId(1);
@@ -69,47 +83,52 @@ class NutritionistServiceTest {
 
         // Assert
         assertNotNull(created);
-        assertEquals(validNutritionistDTO.getEmail().toLowerCase(), created.getEmail());
+        assertEquals(validNutritionistDTO.getEmail(), created.getEmail());
         assertTrue(created.isActive());
         assertNotNull(created.getCreatedAt());
-        verify(nutritionistRepository).findByEmail(validNutritionistDTO.getEmail());
+        verify(nutritionistRepository).findByEmail(validNutritionistDTO.getEmail().toLowerCase());
+        verify(nutritionistMapper).toEntity(validNutritionistDTO);
         verify(nutritionistRepository).save(any(Nutritionist.class));
     }
 
     @Test
     void createNutritionist_WhenEmailExists_ShouldThrowException() {
         // Arrange
-        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail())).thenReturn(Optional.of(existingNutritionist));
+        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail().toLowerCase()))
+                .thenReturn(Optional.of(existingNutritionist));
 
         // Act & Assert
         NutritionistServiceException exception = assertThrows(
                 NutritionistServiceException.class,
-                () -> nutritionistService.createNutritionist(validNutritionistDTO)
-        );
+                () -> nutritionistService.createNutritionist(validNutritionistDTO));
 
         assertEquals(
                 String.format("Nutritionist with email %s already exists", validNutritionistDTO.getEmail()),
-                exception.getMessage()
-        );
-        verify(nutritionistRepository).findByEmail(validNutritionistDTO.getEmail());
+                exception.getMessage());
+        verify(nutritionistRepository).findByEmail(validNutritionistDTO.getEmail().toLowerCase());
+        verify(nutritionistMapper, never()).toEntity(any());
         verify(nutritionistRepository, never()).save(any(Nutritionist.class));
     }
 
     @Test
     void createNutritionist_WhenDataIntegrityViolation_ShouldThrowException() {
         // Arrange
-        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail())).thenReturn(Optional.empty());
-        when(nutritionistRepository.save(any(Nutritionist.class))).thenThrow(new DataIntegrityViolationException("Database error"));
+        when(nutritionistRepository.findByEmail(validNutritionistDTO.getEmail().toLowerCase())).thenReturn(Optional.empty());
+        when(nutritionistMapper.toEntity(validNutritionistDTO)).thenReturn(mappedNutritionist);
+        when(nutritionistRepository.save(any(Nutritionist.class)))
+                .thenThrow(new DataIntegrityViolationException("Database error"));
 
         // Act & Assert
         NutritionistServiceException exception = assertThrows(
                 NutritionistServiceException.class,
-                () -> nutritionistService.createNutritionist(validNutritionistDTO)
-        );
+                () -> nutritionistService.createNutritionist(validNutritionistDTO));
 
-        assertEquals("Failed to create nutritionist due to data integrity violation", exception.getMessage());
+        assertEquals("Create Nutritionist failed due to data integrity violation", exception.getMessage());
         assertNotNull(exception.getCause());
         assertTrue(exception.getCause() instanceof DataIntegrityViolationException);
+        verify(nutritionistRepository).findByEmail(validNutritionistDTO.getEmail().toLowerCase());
+        verify(nutritionistMapper).toEntity(validNutritionistDTO);
+        verify(nutritionistRepository).save(any(Nutritionist.class));
     }
 
     @Test
@@ -123,20 +142,19 @@ class NutritionistServiceTest {
         updateDTO.setPhone("9876543210");
 
         when(nutritionistRepository.findById(id)).thenReturn(Optional.of(existingNutritionist));
-        when(nutritionistRepository.findByEmail(updateDTO.getEmail())).thenReturn(Optional.empty());
-        when(nutritionistRepository.save(any(Nutritionist.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(nutritionistRepository.findByEmail(updateDTO.getEmail().toLowerCase())).thenReturn(Optional.empty());
+        doNothing().when(nutritionistMapper).updateNutritionistFromDTO(updateDTO, existingNutritionist);
+        when(nutritionistRepository.save(any(Nutritionist.class))).thenReturn(existingNutritionist);
 
         // Act
         Nutritionist updated = nutritionistService.updateNutritionist(id, updateDTO);
 
         // Assert
         assertNotNull(updated);
-        assertEquals(updateDTO.getFirstName(), updated.getFirstName());
-        assertEquals(updateDTO.getLastName(), updated.getLastName());
-        assertEquals(updateDTO.getEmail().toLowerCase(), updated.getEmail());
-        assertEquals(updateDTO.getPhone(), updated.getPhone());
         verify(nutritionistRepository).findById(id);
-        verify(nutritionistRepository).save(any(Nutritionist.class));
+        verify(nutritionistRepository).findByEmail(updateDTO.getEmail().toLowerCase());
+        verify(nutritionistMapper).updateNutritionistFromDTO(updateDTO, existingNutritionist);
+        verify(nutritionistRepository).save(existingNutritionist);
     }
 
     @Test
@@ -144,9 +162,8 @@ class NutritionistServiceTest {
         // Arrange
         List<Nutritionist> activeNutritionists = Arrays.asList(
                 existingNutritionist,
-                createNutritionistWithEmail("another@example.com")
-        );
-        when(nutritionistRepository.findByIsActiveTrue()).thenReturn(activeNutritionists);
+                createNutritionistWithEmail("another@example.com"));
+        when(nutritionistRepository.findByActiveTrue()).thenReturn(activeNutritionists);
 
         // Act
         List<Nutritionist> result = nutritionistService.getAllActiveNutritionists();
@@ -154,7 +171,7 @@ class NutritionistServiceTest {
         // Assert
         assertEquals(2, result.size());
         assertTrue(result.stream().allMatch(Nutritionist::isActive));
-        verify(nutritionistRepository).findByIsActiveTrue();
+        verify(nutritionistRepository).findByActiveTrue();
     }
 
     @Test
@@ -182,8 +199,7 @@ class NutritionistServiceTest {
         // Act & Assert
         NutritionistServiceException exception = assertThrows(
                 NutritionistServiceException.class,
-                () -> nutritionistService.deactivateNutritionist(id)
-        );
+                () -> nutritionistService.deactivateNutritionist(id));
 
         assertEquals("Nutritionist not found with id: " + id, exception.getMessage());
         verify(nutritionistRepository).findById(id);

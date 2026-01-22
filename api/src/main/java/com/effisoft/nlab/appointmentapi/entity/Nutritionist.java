@@ -39,6 +39,9 @@ public class Nutritionist {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private boolean isActive;
+    @Column(nullable = true)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "Active", nullable = false)
+    private boolean active;
 }

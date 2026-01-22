@@ -3,14 +3,18 @@ package com.effisoft.nlab.appointmentapi.service;
 import com.effisoft.nlab.appointmentapi.dto.PatientDTO;
 import com.effisoft.nlab.appointmentapi.entity.Patient;
 import com.effisoft.nlab.appointmentapi.exception.PatientServiceException;
+import com.effisoft.nlab.appointmentapi.mapper.PatientMapper;
 import com.effisoft.nlab.appointmentapi.repository.PatientRepository;
+import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.util.HtmlUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,107 +24,88 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository patientRepository;
+    private final PatientMapper patientMapper;
 
     @Transactional
     public Patient createPatient(@Valid PatientDTO dto) {
-        try {
-            if (patientRepository.findByEmail(dto.getEmail()).isPresent()) {
-                throw new PatientServiceException(
-                        String.format("A Patient with email %s already exists", dto.getEmail())
-                );
-            }
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+                () -> {
+                    // Validate email uniqueness
+                    if (patientRepository.findByEmail(dto.getEmail().toLowerCase()).isPresent()) {
+                        throw new PatientServiceException(
+                                String.format("Patient with email %s already exists", dto.getEmail()));
+                    }
 
-            // Create and sanitize new patient
-            Patient patient = new Patient();
-            updatePatientFromDTO(patient, dto);
-            patient.setCreatedAt(LocalDateTime.now());
-            patient.setActive(true);
+                    // Create and sanitize new patient
+                    Patient patient = patientMapper.toEntity(dto);
+                    patient.setCreatedAt(LocalDateTime.now());
+                    patient.setActive(true);
 
-            return patientRepository.save(patient);
-        } catch (PatientServiceException e) {
-            if(e.getMessage().equals(String.format("A Patient with email %s already exists", dto.getEmail()))) {
-                throw e;
-            } else {
-                throw new PatientServiceException("Unexpected error while creating patient", e);
-            }
-        } catch (DataIntegrityViolationException e) {
-            throw new PatientServiceException("Failed to create patient due to data integrity violation", e);
-        } catch (Exception e) {
-            throw new PatientServiceException("Unexpected error while creating patient", e);
-        }
+                    return patientRepository.save(patient);
+                }, PatientServiceException::new, "Create Patient");
     }
 
     @Transactional(readOnly = true)
     public List<Patient> getAllPatients() {
-        return patientRepository.findAll();
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+                () -> patientRepository.findAll(),
+                PatientServiceException::new,
+                "Get All Patients");
     }
 
     @Transactional(readOnly = true)
     public List<Patient> getAllActivePatients() {
-        return patientRepository.findByIsActiveTrue();
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+                () -> patientRepository.findByActiveTrue(),
+                PatientServiceException::new,
+                "Get All Active Patients");
     }
 
     @Transactional(readOnly = true)
     public Patient getPatientById(Integer id) {
-        try {
-            return findById(id);
-        } catch (PatientServiceException pex) {
-            if(pex.getMessage().equals("Patient not found with id: " + id)) {
-                throw pex;
-            } else {
-                throw new PatientServiceException("Unexpected error while creating patient", pex);
-            }
-        } catch (Exception e) {
-            throw new PatientServiceException("Failed to deactivate patient", e);
-        }
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+                () -> findById(id),
+                PatientServiceException::new,
+                "Get Patient by ID");
     }
 
     @Transactional
     public Patient updatePatient(Integer id, @Valid PatientDTO dto) {
-        try {
-            Patient existingPatient = findById(id);
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+                () -> {
+                    Patient existingPatient = findById(id);
 
-            //Check email uniqueness if it's being changed
-            if(!existingPatient.getEmail().equals(dto.getEmail())) {
-                if(patientRepository.findByEmail(dto.getEmail().toLowerCase()).isPresent()) {
-                    throw new PatientServiceException("Email is already in use: " + dto.getEmail());
-                }
-            }
+                    // Check email uniqueness if it's being changed
+                    if (!existingPatient.getEmail().equals(dto.getEmail())) {
+                        if (patientRepository.findByEmail(dto.getEmail().toLowerCase()).isPresent()) {
+                            throw new PatientServiceException("Email is already in use: " + dto.getEmail());
+                        }
+                    }
 
-            updatePatientFromDTO(existingPatient, dto);
-            return patientRepository.save(existingPatient);
-        } catch (DataIntegrityViolationException e) {
-            throw new PatientServiceException("Failed to update patient due to data integrity violation", e);
-        }
+                    patientMapper.updatePatientFromDTO(dto, existingPatient);
+                    existingPatient.setUpdatedAt(LocalDateTime.now());
+                    return patientRepository.save(existingPatient);
+                }, PatientServiceException::new, "Update Patient");
     }
 
     @Transactional
-    public void deactivatePatient(Integer id) {
-        try {
-            Patient patient = findById(id);
+    public Patient deactivatePatient(Integer id) {
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+                () -> {
+                    Patient patient = findById(id);
 
-            patient.setActive(false);
-            patientRepository.save(patient);
-        } catch (PatientServiceException pex) {
-            if(pex.getMessage().equals("Patient not found with id: " + id)) {
-                throw pex;
-            } else {
-                throw new PatientServiceException("Unexpected error while creating patient", pex);
-            }
-        } catch (Exception e) {
-            throw new PatientServiceException("Failed to deactivate patient", e);
-        }
+                    patient.setActive(false);
+                    return patientRepository.save(patient);
+                }, PatientServiceException::new, "Deactivate Patient");
     }
 
-    private void updatePatientFromDTO(Patient patient, PatientDTO dto) {
-        patient.setFirstName(HtmlUtils.htmlEscape(dto.getFirstName().trim()));
-        patient.setLastName(HtmlUtils.htmlEscape(dto.getLastName().trim()));
-        patient.setEmail(dto.getEmail().toLowerCase().trim());
-        patient.setPhone(dto.getPhone() != null ? dto.getPhone().trim() : null);
+    @Transactional(readOnly = true)
+    public Page<PatientDTO> getPatients(Pageable pageable, String searchTerm, Boolean active) {
+        return patientRepository.findPatients(searchTerm, active, pageable)
+                .map(patientMapper::toDto);
     }
 
     private Patient findById(Integer id) {
-
         return patientRepository.findById(id)
                 .orElseThrow(() -> new PatientServiceException("Patient not found with id: " + id));
     }

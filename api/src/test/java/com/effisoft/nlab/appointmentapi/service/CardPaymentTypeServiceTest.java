@@ -78,20 +78,18 @@ class CardPaymentTypeServiceTest {
         // Act & Assert
         CardPaymentTypeServiceException exception = assertThrows(
                 CardPaymentTypeServiceException.class,
-                () -> cardPaymentTypeService.createCardPaymentType(validDTO)
-        );
+                () -> cardPaymentTypeService.createCardPaymentType(validDTO));
 
         assertEquals(
-                "Failed to create card payment type due to data integrity violation",
-                exception.getMessage()
-        );
+                "Create Card Payment Type failed due to data integrity violation",
+                exception.getMessage());
     }
 
     @Test
     void getAllActiveCardPaymentTypes_ShouldReturnOnlyActiveTypes() {
         // Arrange
         List<CardPaymentType> activeTypes = Arrays.asList(existingType);
-        when(cardPaymentTypeRepository.findByIsActiveTrue()).thenReturn(activeTypes);
+        when(cardPaymentTypeRepository.findByActiveTrue()).thenReturn(activeTypes);
 
         // Act
         List<CardPaymentType> result = cardPaymentTypeService.getAllActiveCardPaymentTypes();
@@ -99,7 +97,7 @@ class CardPaymentTypeServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertTrue(result.get(0).isActive());
-        verify(cardPaymentTypeRepository).findByIsActiveTrue();
+        verify(cardPaymentTypeRepository).findByActiveTrue();
     }
 
     @Test
@@ -124,8 +122,7 @@ class CardPaymentTypeServiceTest {
         // Act & Assert
         CardPaymentTypeServiceException exception = assertThrows(
                 CardPaymentTypeServiceException.class,
-                () -> cardPaymentTypeService.getCardPaymentTypeById(999)
-        );
+                () -> cardPaymentTypeService.getCardPaymentTypeById(999));
 
         assertEquals("Card payment type not found with id: 999", exception.getMessage());
         verify(cardPaymentTypeRepository).findById(999);
@@ -142,7 +139,8 @@ class CardPaymentTypeServiceTest {
         updateDTO.setNumberOfInstallments(6);
 
         when(cardPaymentTypeRepository.findById(id)).thenReturn(Optional.of(existingType));
-        when(cardPaymentTypeRepository.save(any(CardPaymentType.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cardPaymentTypeRepository.save(any(CardPaymentType.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         CardPaymentType updated = cardPaymentTypeService.updateCardPaymentType(id, updateDTO);
@@ -166,8 +164,7 @@ class CardPaymentTypeServiceTest {
         // Act & Assert
         CardPaymentTypeServiceException exception = assertThrows(
                 CardPaymentTypeServiceException.class,
-                () -> cardPaymentTypeService.updateCardPaymentType(id, validDTO)
-        );
+                () -> cardPaymentTypeService.updateCardPaymentType(id, validDTO));
 
         assertEquals("Card payment type not found with id: " + id, exception.getMessage());
         verify(cardPaymentTypeRepository).findById(id);
@@ -185,13 +182,11 @@ class CardPaymentTypeServiceTest {
         // Act & Assert
         CardPaymentTypeServiceException exception = assertThrows(
                 CardPaymentTypeServiceException.class,
-                () -> cardPaymentTypeService.updateCardPaymentType(id, validDTO)
-        );
+                () -> cardPaymentTypeService.updateCardPaymentType(id, validDTO));
 
         assertEquals(
-                "Failed to update card payment type due to data integrity violation",
-                exception.getMessage()
-        );
+                "Update Card Payment Type failed due to data integrity violation",
+                exception.getMessage());
     }
 
     @Test
@@ -199,7 +194,8 @@ class CardPaymentTypeServiceTest {
         // Arrange
         Integer id = 1;
         when(cardPaymentTypeRepository.findById(id)).thenReturn(Optional.of(existingType));
-        when(cardPaymentTypeRepository.save(any(CardPaymentType.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cardPaymentTypeRepository.save(any(CardPaymentType.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
         cardPaymentTypeService.deactivateCardPaymentType(id);
@@ -219,10 +215,9 @@ class CardPaymentTypeServiceTest {
         // Act & Assert
         CardPaymentTypeServiceException exception = assertThrows(
                 CardPaymentTypeServiceException.class,
-                () -> cardPaymentTypeService.deactivateCardPaymentType(id)
-        );
+                () -> cardPaymentTypeService.deactivateCardPaymentType(id));
 
-        assertEquals("Failed to deactivate card payment type", exception.getMessage());
+        assertEquals("Card payment type not found with id: 999", exception.getMessage());
         verify(cardPaymentTypeRepository).findById(id);
         verify(cardPaymentTypeRepository, never()).save(any(CardPaymentType.class));
     }
@@ -238,10 +233,9 @@ class CardPaymentTypeServiceTest {
         // Act & Assert
         CardPaymentTypeServiceException exception = assertThrows(
                 CardPaymentTypeServiceException.class,
-                () -> cardPaymentTypeService.deactivateCardPaymentType(id)
-        );
+                () -> cardPaymentTypeService.deactivateCardPaymentType(id));
 
-        assertEquals("Failed to deactivate card payment type", exception.getMessage());
+        assertEquals("Deactivate Card Payment Type failed due to unexpected error", exception.getMessage());
         verify(cardPaymentTypeRepository).findById(id);
         verify(cardPaymentTypeRepository).save(any(CardPaymentType.class));
     }

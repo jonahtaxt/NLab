@@ -4,18 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { login } from '@/app/lib/data';
+import useAuth from '@/app/hooks/useAuth';
+import Image from 'next/image';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({
-        username: '', 
+        username: '',
         password: '',
-        authUrl: process.env.NEXT_PUBLIC_KEYCLOAK_URL,
-        clientId: process.env.NEXT_PUBLIC_CLIENT_ID,
-        clientSecret: process.env.NEXT_PUBLIC_CLIENT_SECRET,
-        realm: process.env.NEXT_PUBLIC_REALM });
+    });
     const [error, setError] = useState('');
     const router = useRouter();
+    const { login, isLoading } = useAuth();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -26,45 +25,53 @@ const Login = () => {
         setError('');
         
         try {
-            if (!process.env.NEXT_PUBLIC_CLIENT_ID || 
-                !process.env.NEXT_PUBLIC_CLIENT_SECRET || 
-                !process.env.NEXT_PUBLIC_KEYCLOAK_URL || 
-                !process.env.NEXT_PUBLIC_REALM) {
-                throw new Error("Missing environment variables");
-            }
+            const success = await login(credentials.username, credentials.password);
             
-            const data = await login(process.env.NEXT_PUBLIC_CLIENT_ID,
-                credentials.username,
-                credentials.password,
-                process.env.NEXT_PUBLIC_CLIENT_SECRET,
-                process.env.NEXT_PUBLIC_KEYCLOAK_URL,
-                process.env.NEXT_PUBLIC_REALM
-            );
-
-            if (!data.ok) {
-            throw new Error("Login failed");
+            if (success) {
+                router.push('/dashboard');
+            } else {
+                setError('Login failed. Please check your credentials.');
             }
-            localStorage.setItem('access_token', data.jwt.access_token);
-            localStorage.setItem('refresh_token', data.jwt.refresh_token);
-            router.push('/dashboard');
         } catch (err) {
             console.error("Login error:", err);
-            setError('Login failed. Please check your credentials.');
+            setError('Login failed. Please try again.');
         }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center">
+        <div className="flex min-h-screen flex-col items-center justify-center">
+            <div className="mb-8 flex justify-center">
+                <Image src="/logo.png" alt="Logo" width={200} height={200} priority />
+            </div>
             <form onSubmit={handleSubmit} className="p-6 border rounded-lg shadow-md w-80 space-y-4">
-                <h2 className="text-xl font-semibold">Iniciar sesión</h2>
+                <h2 className="text-xl font-semibold text-center">Iniciar sesión</h2>
                 {error && <p className="text-red-500 text-sm">{error}</p>}
                 <div>
-                    <Input name="username" placeholder="Usuario" onChange={handleChange} required />
+                    <Input 
+                        name="username" 
+                        placeholder="Usuario" 
+                        onChange={handleChange} 
+                        required 
+                        disabled={isLoading}
+                    />
                 </div>
                 <div>
-                    <Input name="password" type="password" placeholder="Contraseña" onChange={handleChange} required />
+                    <Input 
+                        name="password" 
+                        type="password" 
+                        placeholder="Contraseña" 
+                        onChange={handleChange} 
+                        required 
+                        disabled={isLoading}
+                    />
                 </div>
-                <Button type="submit" className="w-full">Iniciar sesión</Button>
+                <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                </Button>
             </form>
         </div>
     );

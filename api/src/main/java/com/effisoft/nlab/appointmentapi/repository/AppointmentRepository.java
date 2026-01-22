@@ -11,4 +11,6 @@ import java.util.List;
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
     List<Appointment> findByNutritionistIdAndAppointmentDateTimeBetween(
             Integer nutritionistId, LocalDateTime startDate, LocalDateTime endDate);
+            
+    boolean existsByNutritionistIdAndAppointmentDateTime(Integer nutritionistId, LocalDateTime appointmentDateTime);
 }

@@ -8,8 +8,9 @@ import com.effisoft.nlab.appointmentapi.exception.NutritionistPaymentPeriodExcep
 import com.effisoft.nlab.appointmentapi.repository.AppointmentRepository;
 import com.effisoft.nlab.appointmentapi.repository.NutritionistPaymentPeriodRepository;
 import com.effisoft.nlab.appointmentapi.repository.NutritionistRepository;
+import com.effisoft.nlab.appointmentapi.service.base.ServiceExceptionHandler;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -29,139 +30,161 @@ public class NutritionistPaymentPeriodService {
 
     @Transactional
     public NutritionistPaymentPeriod createPaymentPeriod(@Valid NutritionistPaymentPeriodDTO dto) {
-        try {
-            Nutritionist nutritionist = nutritionistRepository.findById(dto.getNutritionistId())
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                Nutritionist nutritionist = nutritionistRepository.findById(dto.getNutritionistId())
                     .orElseThrow(() -> new NutritionistPaymentPeriodException("Nutritionist not found"));
 
-            // Validate date range
-            if (dto.getPeriodEndDate().isBefore(dto.getPeriodStartDate())) {
-                throw new NutritionistPaymentPeriodException("End date cannot be before start date");
-            }
+                // Validate date range
+                if (dto.getPeriodEndDate().isBefore(dto.getPeriodStartDate())) {
+                    throw new NutritionistPaymentPeriodException("End date cannot be before start date");
+                }
 
-            NutritionistPaymentPeriod paymentPeriod = new NutritionistPaymentPeriod();
-            paymentPeriod.setNutritionist(nutritionist);
-            paymentPeriod.setPeriodStartDate(dto.getPeriodStartDate());
-            paymentPeriod.setPeriodEndDate(dto.getPeriodEndDate());
+                NutritionistPaymentPeriod paymentPeriod = new NutritionistPaymentPeriod();
+                paymentPeriod.setNutritionist(nutritionist);
+                paymentPeriod.setPeriodStartDate(dto.getPeriodStartDate());
+                paymentPeriod.setPeriodEndDate(dto.getPeriodEndDate());
 
-            // Calculate total appointments and amount based on completed appointments
-            LocalDateTime startDateTime = dto.getPeriodStartDate().atStartOfDay();
-            LocalDateTime endDateTime = dto.getPeriodEndDate().atTime(23, 59, 59);
+                // Calculate total appointments and amount based on COMPLETADA appointments
+                LocalDateTime startDateTime = dto.getPeriodStartDate().atStartOfDay();
+                LocalDateTime endDateTime = dto.getPeriodEndDate().atTime(23, 59, 59);
 
-            List<Appointment> completedAppointments = appointmentRepository
-                    .findByNutritionistIdAndAppointmentDateTimeBetween(
-                            nutritionist.getId(),
-                            startDateTime,
-                            endDateTime
-                    )
-                    .stream()
-                    .filter(appointment -> "COMPLETED".equals(appointment.getStatus()))
-                    .toList();
+                List<Appointment> COMPLETADAAppointments = appointmentRepository
+                        .findByNutritionistIdAndAppointmentDateTimeBetween(
+                                nutritionist.getId(),
+                                startDateTime,
+                                endDateTime
+                        )
+                        .stream()
+                        .filter(appointment -> "COMPLETADA".equals(appointment.getStatus()))
+                        .toList();
 
-            paymentPeriod.setTotalAppointments(completedAppointments.size());
+                paymentPeriod.setTotalAppointments(COMPLETADAAppointments.size());
 
-            // Calculate total amount based on package types' nutritionist rates
-            BigDecimal totalAmount = completedAppointments.stream()
-                    .map(appointment ->
-                            appointment.getPurchasedPackage().getPackageType().getNutritionistRate())
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                // Calculate total amount based on package types' nutritionist rates
+                BigDecimal totalAmount = COMPLETADAAppointments.stream()
+                        .map(appointment ->
+                                appointment.getPurchasedPackage().getPackageType().getNutritionistRate())
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            paymentPeriod.setTotalAmount(totalAmount);
-            paymentPeriod.setPaymentStatus("PENDING");
+                paymentPeriod.setTotalAmount(totalAmount);
+                paymentPeriod.setPaymentStatus("PENDING");
 
-            return nutritionistPaymentPeriodRepository.save(paymentPeriod);
-        } catch (DataIntegrityViolationException e) {
-            throw new NutritionistPaymentPeriodException(
-                    "Failed to create payment period due to data integrity violation", e);
-        }
+                return nutritionistPaymentPeriodRepository.save(paymentPeriod);
+            }, 
+            NutritionistPaymentPeriodException::new, 
+            "Create Payment Period"
+        );
     }
 
     @Transactional(readOnly = true)
     public List<NutritionistPaymentPeriod> getAllPaymentPeriods() {
-        return nutritionistPaymentPeriodRepository.findAll();
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> nutritionistPaymentPeriodRepository.findAll(),
+            NutritionistPaymentPeriodException::new,
+            "Get All Payment Periods"
+        );
     }
 
     @Transactional(readOnly = true)
     public NutritionistPaymentPeriod getPaymentPeriodById(Integer id) {
-        return nutritionistPaymentPeriodRepository.findById(id)
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> nutritionistPaymentPeriodRepository.findById(id)
                 .orElseThrow(() -> new NutritionistPaymentPeriodException(
-                        "Payment period not found with id: " + id));
+                    "Payment period not found with id: " + id)),
+            NutritionistPaymentPeriodException::new,
+            "Get Payment Period By Id"
+        );
     }
 
     @Transactional
     public NutritionistPaymentPeriod processPayment(Integer id) {
-        NutritionistPaymentPeriod period = getPaymentPeriodById(id);
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                NutritionistPaymentPeriod period = getPaymentPeriodById(id);
 
-        if ("PAID".equals(period.getPaymentStatus())) {
-            throw new NutritionistPaymentPeriodException("Payment period is already paid");
-        }
+                if ("PAID".equals(period.getPaymentStatus())) {
+                    throw new NutritionistPaymentPeriodException("Payment period is already paid");
+                }
 
-        if ("CANCELLED".equals(period.getPaymentStatus())) {
-            throw new NutritionistPaymentPeriodException("Cannot process cancelled payment period");
-        }
+                if ("CANCELADA".equals(period.getPaymentStatus())) {
+                    throw new NutritionistPaymentPeriodException("Cannot process CANCELADA payment period");
+                }
 
-        period.setPaymentStatus("PAID");
-        period.setProcessedDate(LocalDateTime.now());
+                period.setPaymentStatus("PAID");
+                period.setProcessedDate(LocalDateTime.now());
 
-        return nutritionistPaymentPeriodRepository.save(period);
+                return nutritionistPaymentPeriodRepository.save(period);
+            },
+            NutritionistPaymentPeriodException::new,
+            "Process Payment"
+        );
     }
 
     @Transactional
     public NutritionistPaymentPeriod updatePaymentPeriod(Integer id, @Valid NutritionistPaymentPeriodDTO dto) {
-        try {
-            NutritionistPaymentPeriod existingPeriod = getPaymentPeriodById(id);
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                NutritionistPaymentPeriod existingPeriod = getPaymentPeriodById(id);
 
-            if ("PAID".equals(existingPeriod.getPaymentStatus())) {
-                throw new NutritionistPaymentPeriodException("Cannot update paid payment period");
-            }
+                if ("PAID".equals(existingPeriod.getPaymentStatus())) {
+                    throw new NutritionistPaymentPeriodException("Cannot update paid payment period");
+                }
 
-            // Validate date range
-            if (dto.getPeriodEndDate().isBefore(dto.getPeriodStartDate())) {
-                throw new NutritionistPaymentPeriodException("End date cannot be before start date");
-            }
+                // Validate date range
+                if (dto.getPeriodEndDate().isBefore(dto.getPeriodStartDate())) {
+                    throw new NutritionistPaymentPeriodException("End date cannot be before start date");
+                }
 
-            existingPeriod.setPeriodStartDate(dto.getPeriodStartDate());
-            existingPeriod.setPeriodEndDate(dto.getPeriodEndDate());
+                existingPeriod.setPeriodStartDate(dto.getPeriodStartDate());
+                existingPeriod.setPeriodEndDate(dto.getPeriodEndDate());
 
-            // Recalculate appointments and amount
-            LocalDateTime startDateTime = dto.getPeriodStartDate().atStartOfDay();
-            LocalDateTime endDateTime = dto.getPeriodEndDate().atTime(23, 59, 59);
+                // Recalculate appointments and amount
+                LocalDateTime startDateTime = dto.getPeriodStartDate().atStartOfDay();
+                LocalDateTime endDateTime = dto.getPeriodEndDate().atTime(23, 59, 59);
 
-            List<Appointment> completedAppointments = appointmentRepository
-                    .findByNutritionistIdAndAppointmentDateTimeBetween(
-                            existingPeriod.getNutritionist().getId(),
-                            startDateTime,
-                            endDateTime
-                    )
-                    .stream()
-                    .filter(appointment -> "COMPLETED".equals(appointment.getStatus()))
-                    .toList();
+                List<Appointment> COMPLETADAAppointments = appointmentRepository
+                        .findByNutritionistIdAndAppointmentDateTimeBetween(
+                                existingPeriod.getNutritionist().getId(),
+                                startDateTime,
+                                endDateTime
+                        )
+                        .stream()
+                        .filter(appointment -> "COMPLETADA".equals(appointment.getStatus()))
+                        .toList();
 
-            existingPeriod.setTotalAppointments(completedAppointments.size());
+                existingPeriod.setTotalAppointments(COMPLETADAAppointments.size());
 
-            BigDecimal totalAmount = completedAppointments.stream()
-                    .map(appointment ->
-                            appointment.getPurchasedPackage().getPackageType().getNutritionistRate())
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal totalAmount = COMPLETADAAppointments.stream()
+                        .map(appointment ->
+                                appointment.getPurchasedPackage().getPackageType().getNutritionistRate())
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            existingPeriod.setTotalAmount(totalAmount);
-            existingPeriod.setPaymentStatus(dto.getPaymentStatus());
+                existingPeriod.setTotalAmount(totalAmount);
+                existingPeriod.setPaymentStatus(dto.getPaymentStatus());
 
-            return nutritionistPaymentPeriodRepository.save(existingPeriod);
-        } catch (DataIntegrityViolationException e) {
-            throw new NutritionistPaymentPeriodException(
-                    "Failed to update payment period due to data integrity violation", e);
-        }
+                return nutritionistPaymentPeriodRepository.save(existingPeriod);
+            },
+            NutritionistPaymentPeriodException::new,
+            "Update Payment Period"
+        );
     }
 
     @Transactional
-    public void cancelPaymentPeriod(Integer id) {
-        NutritionistPaymentPeriod period = getPaymentPeriodById(id);
+    public NutritionistPaymentPeriod cancelPaymentPeriod(Integer id) {
+        return ServiceExceptionHandler.executeWithExceptionHandling(
+            () -> {
+                NutritionistPaymentPeriod period = getPaymentPeriodById(id);
 
-        if ("PAID".equals(period.getPaymentStatus())) {
-            throw new NutritionistPaymentPeriodException("Cannot cancel paid payment period");
-        }
+                if ("PAID".equals(period.getPaymentStatus())) {
+                    throw new NutritionistPaymentPeriodException("Cannot cancel paid payment period");
+                }
 
-        period.setPaymentStatus("CANCELLED");
-        nutritionistPaymentPeriodRepository.save(period);
+                period.setPaymentStatus("CANCELADA");
+                return nutritionistPaymentPeriodRepository.save(period);
+            },
+            NutritionistPaymentPeriodException::new,
+            "Cancel Payment Period"
+        );
     }
 }

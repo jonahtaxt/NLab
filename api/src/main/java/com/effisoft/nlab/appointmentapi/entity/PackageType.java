@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -27,8 +28,8 @@ public class PackageType {
     @Column(nullable = false)
     private Integer numberOfAppointments;
 
-    @Column(nullable = false)
-    private boolean isBundle;
+    @Column(name = "Bundle", nullable = false)
+    private boolean bundle;
 
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
@@ -43,6 +44,12 @@ public class PackageType {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal nutritionistRate;
 
+    @Column(name = "Active", nullable = false)
+    private boolean active;
+
     @Column(nullable = false)
-    private boolean isActive;
+    private LocalDateTime createdAt;
+
+    @Column(nullable = true)
+    private LocalDateTime updatedAt;
 }
