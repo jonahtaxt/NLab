@@ -4,6 +4,7 @@ An **Appointment Management System** for nutritionists and patients. A full-stac
 
 ## Table of Contents
 
+- [Project Context](#project-context)
 - [Project Structure](#project-structure)
 - [Technology Stack](#technology-stack)
 - [Features](#features)
@@ -12,6 +13,22 @@ An **Appointment Management System** for nutritionists and patients. A full-stac
 - [Database Schema](#database-schema)
 - [Security](#security)
 - [License](#license)
+
+## Project Context
+
+NLab is a real-world, full-stack application built to support appointment
+scheduling, patient progression, and historical health data management
+for nutritionist workflows.
+
+From an engineering perspective, this project prioritizes:
+- clear workflow modeling
+- durable, long-lived data
+- correctness of state transitions
+- maintainability over time
+
+The repository is structured to be approachable for engineers who want to
+understand, run, or extend the system.
+
 
 ## Project Structure
 
@@ -328,4 +345,7 @@ This project is licensed under the **GNU General Public License v3 (GPL-3.0)**.
 
 ---
 
-**Company**: Effisoft
+This project is not intended to demonstrate horizontal scaling or
+high-availability patterns; those concerns were intentionally out of scope
+for the problems being explored here.
+
